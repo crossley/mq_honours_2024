@@ -71,22 +71,27 @@ condition = condition_list[(subject - 1) % 2]
 n_trial = 400
 
 if condition == "slow":
-    mt_too_slow = 5000
-    mt_too_fast = 0
+    mt_too_slow = 3000
+    mt_too_fast = 1500
+
 elif condition == "fast":
-    mt_too_slow = 5000
-    mt_too_fast = 0
+    mt_too_slow = 1500
+    mt_too_fast = 750
 
 su_low = 0.01 * px_per_cm
 su_mid = 0.25 * px_per_cm
 su_high = 0.75 * px_per_cm
 su_inf = np.nan
 su = np.random.choice([su_low, su_mid, su_high, su_inf], n_trial)
+su = np.random.choice([su_mid, su_mid, su_mid, su_mid], n_trial)
 
 rotation = np.zeros(n_trial)
 rotation[n_trial // 3:2 * n_trial // 3] = 15 * np.pi / 180
 
-n_cloud_dots = 10
+mpep_visible = np.zeros(n_trial)
+mpep_visible[:2 * n_trial // 3:] = 1
+
+n_cloud_dots = 20
 
 pygame.init()
 
@@ -105,7 +110,7 @@ screen = pygame.display.set_mode((screen_width, screen_height),
                                  pygame.FULLSCREEN)
 
 # Hide the mouse cursor
-pygame.mouse.set_visible(False)
+# pygame.mouse.set_visible(False)
 
 # Set up fonts
 font = pygame.font.Font(None, 36)
@@ -278,13 +283,13 @@ while running:
         r = np.sqrt((hand_pos[0] - start_pos[0])**2 +
                     (hand_pos[1] - start_pos[1])**2)
 
-        # smoothly transition from blue to green with
+        # smoothly transition from blue to red with
         # increasing time until next state
         if t_state < 2000:
             proportion = t_state / 2000
-            green_component = int(255 * proportion)
+            red_component = int(255 * proportion)
             blue_component = int(255 * (1 - proportion))
-            state_color = (0, green_component, blue_component)
+            state_color = (red_component, 0, blue_component)
             pygame.draw.circle(screen, state_color, start_pos, start_radius)
             pygame.draw.circle(screen, white, hand_pos, cursor_radius)
 
@@ -301,7 +306,7 @@ while running:
         t_state += clock_state.tick()
 
         pygame.draw.circle(screen, blue, start_pos, start_radius)
-        pygame.draw.circle(screen, green, target_pos, target_radius)
+        pygame.draw.circle(screen, red, target_pos, target_radius)
 
         r = np.sqrt((hand_pos[0] - start_pos[0])**2 +
                     (hand_pos[1] - start_pos[1])**2)
@@ -313,8 +318,8 @@ while running:
             mt = t_state
             t_state = 0
 
-            if not np.isnan(su[trial]):
-                cloud = cloud - cloud.mean(axis=0) + cursor_pos
+            # if not np.isnan(su[trial]):
+            #     cloud = cloud - cloud.mean(axis=0) + cursor_pos
 
             state_current = "state_feedback_mp"
 
@@ -322,7 +327,7 @@ while running:
         t_state += clock_state.tick()
 
         pygame.draw.circle(screen, blue, start_pos, start_radius)
-        pygame.draw.circle(screen, green, target_pos, target_radius)
+        pygame.draw.circle(screen, red, target_pos, target_radius)
 
         r = np.sqrt((hand_pos[0] - start_pos[0])**2 +
                     (hand_pos[1] - start_pos[1])**2)
@@ -330,11 +335,12 @@ while running:
         r_target = np.sqrt((target_pos[0] - start_pos[0])**2 +
                            (target_pos[1] - start_pos[1])**2)
 
-        if not np.isnan(su[trial]):
-            for i in range(n_cloud_dots):
-                pygame.draw.circle(screen, white,
-                                   cloud[i, :] - cloud.mean() + cursor_pos,
-                                   cursor_radius)
+        if mpep_visible[trial] == 1:
+            if not np.isnan(su[trial]):
+                for i in range(n_cloud_dots):
+                    pygame.draw.circle(screen, white,
+                                       cloud[i, :] - cloud.mean() + cursor_pos,
+                                       cursor_radius)
 
         if t_state > 100:
             mt += t_state
@@ -345,7 +351,7 @@ while running:
         t_state += clock_state.tick()
 
         pygame.draw.circle(screen, blue, start_pos, start_radius)
-        pygame.draw.circle(screen, green, target_pos, target_radius)
+        pygame.draw.circle(screen, red, target_pos, target_radius)
 
         r = np.sqrt((hand_pos[0] - start_pos[0])**2 +
                     (hand_pos[1] - start_pos[1])**2)
@@ -380,11 +386,12 @@ while running:
         t_state += clock_state.tick()
 
         pygame.draw.circle(screen, blue, start_pos, start_radius)
-        pygame.draw.circle(screen, green, target_pos, target_radius)
+        pygame.draw.circle(screen, red, target_pos, target_radius)
 
-        if not np.isnan(su[trial]):
-            for i in range(n_cloud_dots):
-                pygame.draw.circle(screen, white, cloud[i], cursor_radius)
+        # if mpep_visible[trial] == 1:
+        #     if not np.isnan(su[trial]):
+        #         for i in range(n_cloud_dots):
+        #             pygame.draw.circle(screen, white, cloud[i], cursor_radius)
 
         if t_state > 1000:
             trial_data['condition'].append(condition)
@@ -441,7 +448,7 @@ while running:
         screen.blit(text, text_rect)
 
         pygame.draw.circle(screen, blue, start_pos, start_radius)
-        pygame.draw.circle(screen, green, target_pos, target_radius)
+        pygame.draw.circle(screen, red, target_pos, target_radius)
 
         if t_state > 2000:
             t_state = 0
@@ -451,7 +458,7 @@ while running:
         t_state += clock_state.tick()
 
         pygame.draw.circle(screen, blue, start_pos, start_radius)
-        pygame.draw.circle(screen, green, target_pos, target_radius)
+        pygame.draw.circle(screen, red, target_pos, target_radius)
 
         a0 = a1 = a2 = 0
         a3 = 10
