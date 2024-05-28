@@ -1,5 +1,4 @@
 from imports import *
-
 """
 - This project aims to follow Hewitson et al. (2023). There,
   we found that including midpoint feedback -- and thereby
@@ -58,6 +57,104 @@ full_path = os.path.join(dir_data, f_name)
 # if os.path.exists(full_path):
 #     print(f"File {f_name} already exists. Aborting.")
 #     sys.exit()
+
+use_liberty = False
+
+rig_coord_upper_left = 0
+rig_coord_upper_right = 0
+rig_coord_lower_right = 0
+rig_coord_lower_left = 0
+
+
+# This method grabs the position of the sensor
+def getPosition(ser, recordsize, averager):
+    ser.reset_input_buffer()
+
+    # Set variables
+    # This defines the length of the binary header (bytes 0-7)
+    header = 8
+    # This defines the bytesize of IEEE floating point
+    byte_size = 4
+
+    # Obtain data
+    ser.write(b"P")
+    # time.sleep(0.1)
+    # print("inWaiting " + str(ser.inWaiting()))
+    # print("recorded size " + str(recordsize))
+
+    # Read header to remove it from the input buffer
+    ser.read(header)
+
+    positions = []
+
+    # Read the three coordinates
+    for x in range(3):
+        # Read the coordinate
+        coord = ser.read(byte_size)
+
+        # Convert hex to floating point (little endian order)
+        coord = struct.unpack("<f", coord)[0]
+
+        positions.append(coord)
+
+    return positions
+
+
+if use_liberty:
+    ser = serial.Serial()
+    ser.baudrate = 115200
+    ser.port = "COM1"
+
+    print(ser)
+    ser.open()
+
+    # Checks serial port if open
+    if ser.is_open == False:
+        print("Error! Serial port is not open")
+        exit()
+
+    # Send command to receive data through port
+    ser.write(b"P")
+    time.sleep(1)
+
+    # Checks if Liberty is responding(e.g on)
+    if ser.inWaiting() < 1:
+        print("Error! Check if liberty is on!")
+        exit()
+
+    # Set liberty output mode to binary
+    ser.write(b"F1\r")
+    time.sleep(1)
+
+    # Set distance unit to centimeters
+    ser.write(b"U1\r")
+    time.sleep(0.1)
+
+    # Set hemisphere to +Z
+    ser.write(b"H1,0,0,1\r")
+    time.sleep(0.1)
+
+    # Set sample rate to 240hz
+    ser.write(b"R4\r")
+    time.sleep(0.1)
+
+    # Reset frame count
+    ser.write(b"Q1\r")
+    time.sleep(0.1)
+
+    # Set output to only include position (no orientation)
+    ser.write(b"O1,3,9\r")
+    time.sleep(0.1)
+    ser.reset_input_buffer()
+
+    # Obtain data
+    ser.write(b"P")
+    time.sleep(0.1)
+
+    # Size of response
+    recordsize = ser.inWaiting()
+    ser.reset_input_buffer()
+    averager = 4
 
 # useful constants but need to change / verify on each computer
 pixels_per_inch = 227 / 2
@@ -145,11 +242,8 @@ clock_exp = pygame.time.Clock()
 t_state = 0.0
 time_exp = 0.0
 
-# initial state
-state_init = "state_init"
-
 # set the current state to the initial state
-state_current = state_init
+state_current = "calibrate_upper_left"
 
 # behavioural measurements
 rt = -1
@@ -170,6 +264,16 @@ trial_data = {
     'ep': []
 }
 
+trial_move = {
+    'condition': [],
+    'subject': [],
+    'trial': [],
+    'state': [],
+    't': [],
+    'x': [],
+    'y': []
+}
+
 # calibration vars
 screen_coord_upper_left = (0, 0)
 screen_coord_upper_right = (screen_width, 0)
@@ -184,13 +288,18 @@ rig_coord_lower_left = (0, 0)
 running = True
 while running:
 
+    time_exp += clock_exp.tick()
+    screen.fill((0, 0, 0))
+
     rot_mat = np.array([[np.cos(rotation[trial]), -np.sin(rotation[trial])],
                         [np.sin(rotation[trial]),
                          np.cos(rotation[trial])]])
 
-    time_exp += clock_exp.tick()
-    screen.fill((0, 0, 0))
-    hand_pos = pygame.mouse.get_pos()
+    if use_liberty:
+        hand_pos = getPosition(ser, recordsize, averager)
+    else:
+        hand_pos = pygame.mouse.get_pos()
+
     cursor_pos = np.dot(np.array(hand_pos) - np.array(start_pos),
                         rot_mat) + start_pos
 
@@ -483,35 +592,59 @@ while running:
     # TODO: Implement calibration states
     if state_current == "calibrate_upper_left":
         t_state += clock_state.tick()
-        text = font.render("Please to the upper left corner of the screen",
-                           True, (255, 255, 255))
+        text = font.render(
+            "Please move to the upper left corner of the screen", True,
+            (255, 255, 255))
         text_rect = text.get_rect(center=(screen_width / 2, screen_height / 2))
         screen.fill(black)
         screen.blit(text, text_rect)
+        if event.key == pygame.K_SPACE:
+            rig_coord_upper_left = hand_pos
+            state_current = "calibrate_upper_right"
 
     if state_current == "calibrate_upper_right":
         t_state += clock_state.tick()
-        text = font.render("Please to the upper right corner of the screen",
-                           True, (255, 255, 255))
+        text = font.render(
+            "Please move to the upper right corner of the screen", True,
+            (255, 255, 255))
         text_rect = text.get_rect(center=(screen_width / 2, screen_height / 2))
         screen.fill(black)
         screen.blit(text, text_rect)
+        if event.key == pygame.K_SPACE:
+            rig_coord_upper_right = hand_pos
+            state_current = "calibrate_lower_right"
 
     if state_current == "calibrate_lower_right":
         t_state += clock_state.tick()
-        text = font.render("Please to the lower right corner of the screen",
-                           True, (255, 255, 255))
+        text = font.render(
+            "Please move to the lower right corner of the screen", True,
+            (255, 255, 255))
         text_rect = text.get_rect(center=(screen_width / 2, screen_height / 2))
         screen.fill(black)
         screen.blit(text, text_rect)
+        if event.key == pygame.K_SPACE:
+            rig_coord_lower_right = hand_pos
+            state_current = "calibrate_lower_left"
 
     if state_current == "calibrate_lower_left":
         t_state += clock_state.tick()
-        text = font.render("Please to the lower left corner of the screen",
-                           True, (255, 255, 255))
+        text = font.render(
+            "Please move to the lower left corner of the screen", True,
+            (255, 255, 255))
         text_rect = text.get_rect(center=(screen_width / 2, screen_height / 2))
         screen.fill(black)
         screen.blit(text, text_rect)
+        if event.key == pygame.K_SPACE:
+            rig_coord_lower_left = hand_pos
+            state_current = "state_init"
+
+    trial_move['condition'].append(condition)
+    trial_move['subject'].append(subject)
+    trial_move['trial'].append(trial)
+    trial_move['state'].append(state_current)
+    trial_move['t'].append(time_exp)
+    trial_move['x'].append(hand_pos[0])
+    trial_move['y'].append(hand_pos[1])
 
     pygame.display.flip()
 

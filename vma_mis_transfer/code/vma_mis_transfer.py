@@ -1,40 +1,6 @@
 from imports import *
 """
-- This project aims to following up a surprising finding we
-  have recently reported.
-
-- In a paradigm where midpoint feedback was provided to
-  allow and encourage online within-movement corrections,
-  adaptation given high sensory uncertainty was greater than
-  adaptation given low sensory uncertainty.
-
-- Something like this has been reported many times before
-  but our results are surprising because we compared a
-  blocked design to an interleaved design and found that the
-  adpatation to low sensory uncertainty was much greater in
-  the interleaved condition than in the blocked condition.
-
-- To our knowledge, this has never been reported before. It
-  is also unpredicted by any current theory.
-
-- Here, we aim to investigate blocked vs interleaved
-  conditions with center-out reaches (no midpoint feedback)
-  in order to establish the boundaries of this effect.
-
-- There are three conditions: blocked_low, blocked_high, and
-  interleaved. Subjects are assigned to a condition based on
-  their subject number.
-
-- There is not currently a way to pause the experiment and
-  there are no blocks or breaks. We may wish to add these
-  but I'm not sure.
-
-- Task instructions must be given verbally in the lab. They
-  are not automated in this code.
-
-- Consent must also currently be given and recorded manually
-  in the lab, but we may pivot to automation down the road.
-
+- This project aims to followup Hewitson et al. MIS paper
 """
 
 subject = 1
@@ -51,45 +17,30 @@ full_path_move = os.path.join(dir_data, f"sub_{subject}_data_move.csv")
 pixels_per_inch = 227 / 2
 px_per_cm = pixels_per_inch / 2.54
 
-n_trial = 430
-
-condition_list = ["blocked", "interleaved"]
-condition = condition_list[(subject - 1) % 2]
-
-low_su = 0.000000000001 * px_per_cm
-high_su = 0.025 * px_per_cm
-
-su_interleaved = np.random.choice([low_su * px_per_cm, high_su * px_per_cm],
-                                  n_trial)
-
-su_1 = low_su * px_per_cm * np.ones(n_trial // 2)
-su_2 = high_su * px_per_cm * np.ones(n_trial // 2)
-if np.random.rand() > 0.5:
-    su_blocked = np.concatenate((su_1, su_2))
-else:
-    su_blocked = np.concatenate((su_2, su_1))
-
-if condition == "interleaved":
-    su = su_interleaved
-elif condition == "blocked":
-    su = su_blocked
-
-su[:30] = su_interleaved[:30]
+n_trial = 374
 
 rotation = np.zeros(n_trial)
-rotation[30:130] = 15 * np.pi / 180
-rotation[230:330] = 15 * np.pi / 180
+rotation[132:] = 15 * np.pi / 180
 
 endpoint_visible = np.ones(n_trial)
-endpoint_visible[130:180] = 0
-endpoint_visible[330:380] = 0
 
-fig, ax = plt.subplots(3, 1, squeeze=False, figsize=(10, 5))
-ax[0, 0].plot(su / su.max(), label='sensory uncertainty')
-ax[1, 0].plot(rotation / rotation.max(), label='rotation')
-ax[2, 0].plot(endpoint_visible, label='endpoint visible')
-[x.legend() for x in ax.flatten()]
-plt.show()
+target_angles = [-150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150]
+target_angle = np.zeros(n_trial)
+
+# target_angle[242:]
+
+tmp = []
+
+np.array([
+    np.concatenate((tmp, np.random.permutation(target_angle_generalize)))
+    for _ in range(6)
+]).shape
+
+# fig, ax = plt.subplots(2, 1, squeeze=False, figsize=(10, 5))
+# ax[1, 0].plot(rotation / rotation.max(), label='rotation')
+# ax[2, 0].plot(endpoint_visible, label='endpoint visible')
+# [x.legend() for x in ax.flatten()]
+# plt.show()
 
 pygame.init()
 

@@ -1,6 +1,5 @@
 from imports import *
 from util_func import *
-
 """
 - This project examines category learning while switching on
   a psuedo-random trial-by-trial basis between between
@@ -168,8 +167,36 @@ while running:
         screen.fill(black)
         screen.blit(text, text_rect)
 
-        condition_list = ["2F2K", "2F4K", "4F2K", "4F4K"]
-        condition = condition_list[(subject - 1) % 4]
+        condition_1 = {
+            'context': ["S", "S", "D", "D"],
+            'effector': ["L1", "R1", "L1", "R1"],
+            'resp_key': [pygame.K_x, pygame.K_n, pygame.K_x, pygame.K_n],
+            'stim_region': ["A", "B", "A", "B"]
+        }
+
+        condition_2 = {
+            "context": ["S", "S", "D", "D"],
+            "effector": ["L1", "R1", "L1", "R1"],
+            "resp_key": [pygame.K_x, pygame.K_n, pygame.K_x, pygame.K_n],
+            "stim_region": ["A", "B", "B", "A"]
+        }
+
+        condition_3 = {
+            "context": ["S", "S", "D", "D"],
+            "effector": ["L1", "R1", "L2", "R2"],
+            "resp_key": [pygame.K_x, pygame.K_n, pygame.K_z, pygame.K_m],
+            "stim_region": ["A", "B", "A", "B"]
+        }
+
+        condition_4 = {
+            "context": ["S", "S", "D", "D"],
+            "effector": ["L1", "R1", "L2", "R2"],
+            "resp_key": [pygame.K_x, pygame.K_n, pygame.K_z, pygame.K_m],
+            "stim_region": ["A", "B", "B", "A"]
+        }
+
+        condition_list = [condition_1, condition_2, condition_3, condition_4]
+        condition = pd.DataFrame(condition_list[(subject - 1) % 4])
 
         if resp == pygame.K_SPACE:
             time_state = 0
@@ -225,7 +252,7 @@ while running:
         screen.blit(grating_surface,
                     (center_x - size_px / 2, center_y - size_px / 2))
 
-        if (resp == pygame.K_d) or (resp == pygame.K_k):
+        if np.isin(resp, condition['resp_key']):
             rt = time_state
             time_state = 0
             state_current = "state_feedback"
@@ -233,29 +260,15 @@ while running:
     if state_current == "state_feedback":
         time_state += clock_state.tick()
 
-        if condition in ["2F2K", "4F2K"]:
-            resp_keys = [pygame.K_d, pygame.K_k, pygame.K_d, pygame.K_k]
-        elif condition in ["2F4K", "4F4K"]:
-            resp_keys = [pygame.K_d, pygame.K_k, pygame.K_s, pygame.K_l]
-
-        # The purpose of the -1 in the following line of
-        # code is to convert cat[trial] from (1, 2) into (0,
-        # 1) so that it can be used as an appropriate index
-        # into resp_keys.
         if sub_task == 1:
-            if resp == resp_keys[cat - 1]:
-                fb = 'Correct'
-            else:
-                fb = 'Incorrect'
-
+            resp_correct = condition.loc[(condition["context"] == "S"), 'resp_key'][cat - 1]
         elif sub_task == 2:
-            # The +2 in the following line comes from how
-            # resp_keys is defined above and is why the
-            # order of key listings there matters.
-            if resp == resp_keys[cat - 1 + 2]:
-                fb = 'Correct'
-            else:
-                fb = 'Incorrect'
+            resp_correct = condition.loc[(condition["context"] == "D"), 'resp_key'][cat - 1 + 2]
+
+        if resp == resp_correct:
+            fb = "Correct"
+        else:
+            fb = "Incorrect"
 
         if fb == "Correct":
             pygame.draw.circle(screen, green, (center_x, center_y),
