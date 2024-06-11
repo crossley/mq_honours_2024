@@ -564,6 +564,11 @@ while running:
     trial_move['x'].append(hand_pos[0])
     trial_move['y'].append(hand_pos[1])
 
-    pygame.display.flip()
+    if use_liberty:
+        flipped_screen = pygame.transform.flip(screen, True, True)
+        screen.blit(flipped_screen, (0, 0))
+        pygame.display.update()
+    else:
+        pygame.display.flip()
 
 pygame.quit()
