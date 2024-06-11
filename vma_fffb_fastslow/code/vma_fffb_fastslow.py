@@ -60,11 +60,6 @@ full_path = os.path.join(dir_data, f_name)
 
 use_liberty = False
 
-rig_coord_upper_left = 0
-rig_coord_upper_right = 0
-rig_coord_lower_right = 0
-rig_coord_lower_left = 0
-
 
 # This method grabs the position of the sensor
 def getPosition(ser, recordsize, averager):
@@ -103,7 +98,7 @@ def getPosition(ser, recordsize, averager):
 if use_liberty:
     ser = serial.Serial()
     ser.baudrate = 115200
-    ser.port = "COM1"
+    ser.port = "COM3"
 
     print(ser)
     ser.open()
@@ -170,17 +165,26 @@ n_trial = 400
 if condition == "slow":
     mt_too_slow = 3000
     mt_too_fast = 1500
+    # mt_too_slow = 50000
+    # mt_too_fast = 0
 
 elif condition == "fast":
     mt_too_slow = 1500
     mt_too_fast = 750
+    # mt_too_slow = 500000
+    # mt_too_fast = 0
 
 su_low = 0.01 * px_per_cm
 su_mid = 0.25 * px_per_cm
 su_high = 0.75 * px_per_cm
 su_inf = np.nan
+
 su = np.random.choice([su_low, su_mid, su_high, su_inf], n_trial)
-su = np.random.choice([su_mid, su_mid, su_mid, su_mid], n_trial)
+
+# su = np.random.choice([su_low, su_low, su_low, su_low], n_trial)
+# su = np.random.choice([su_mid, su_mid, su_mid, su_mid], n_trial)
+# su = np.random.choice([su_high, su_high, su_high, su_high], n_trial)
+# su = np.random.choice([su_inf, su_inf, su_inf, su_inf], n_trial)
 
 rotation = np.zeros(n_trial)
 rotation[n_trial // 3:2 * n_trial // 3] = 15 * np.pi / 180
@@ -207,7 +211,7 @@ screen = pygame.display.set_mode((screen_width, screen_height),
                                  pygame.FULLSCREEN)
 
 # Hide the mouse cursor
-# pygame.mouse.set_visible(False)
+pygame.mouse.set_visible(False)
 
 # Set up fonts
 font = pygame.font.Font(None, 36)
@@ -242,9 +246,6 @@ clock_exp = pygame.time.Clock()
 t_state = 0.0
 time_exp = 0.0
 
-# set the current state to the initial state
-state_current = "calibrate_upper_left"
-
 # behavioural measurements
 rt = -1
 mt = -1
@@ -274,16 +275,110 @@ trial_move = {
     'y': []
 }
 
-# calibration vars
-screen_coord_upper_left = (0, 0)
-screen_coord_upper_right = (screen_width, 0)
-screen_coord_lower_right = (screen_width, screen_height)
-screen_coord_lower_left = (0, screen_height)
+if use_liberty == False:
 
-rig_coord_upper_left = (0, 0)
-rig_coord_upper_right = (0, 0)
-rig_coord_lower_right = (0, 0)
-rig_coord_lower_left = (0, 0)
+    # set the current state to the initial state
+    state_current = "state_init"
+
+else:
+
+    rig_coord_upper_left = (0, 0)
+    rig_coord_upper_right = (0, 0)
+    rig_coord_lower_right = (0, 0)
+    rig_coord_lower_left = (0, 0)
+
+    min_x = 1
+    max_x = 2
+    min_y = 1
+    max_y = 2
+
+    calibrating = True
+    state_current = "calibrate_upper_left"
+    while calibrating:
+
+        screen.fill((0, 0, 0))
+
+        if use_liberty:
+            hand_pos = getPosition(ser, recordsize, averager)[0:2]
+        else:
+            hand_pos = pygame.mouse.get_pos()
+
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+                    pygame.quit()
+                else:
+                    resp = event.key
+
+        if state_current == "calibrate_upper_left":
+            t_state += clock_state.tick()
+            text = font.render(
+                "Please move to the upper left corner of the screen", True,
+                (255, 255, 255))
+            text_rect = text.get_rect(center=(screen_width / 2,
+                                              screen_height / 2))
+            screen.fill(black)
+            screen.blit(text, text_rect)
+            if resp == pygame.K_SPACE:
+                resp = []
+                rig_coord_upper_left = hand_pos
+                state_current = "calibrate_upper_right"
+
+        if state_current == "calibrate_upper_right":
+            t_state += clock_state.tick()
+            text = font.render(
+                "Please move to the upper right corner of the screen", True,
+                (255, 255, 255))
+            text_rect = text.get_rect(center=(screen_width / 2,
+                                              screen_height / 2))
+            screen.fill(black)
+            screen.blit(text, text_rect)
+            if resp == pygame.K_SPACE:
+                resp = []
+                rig_coord_upper_right = hand_pos
+                state_current = "calibrate_lower_right"
+
+        if state_current == "calibrate_lower_right":
+            t_state += clock_state.tick()
+            text = font.render(
+                "Please move to the lower right corner of the screen", True,
+                (255, 255, 255))
+            text_rect = text.get_rect(center=(screen_width / 2,
+                                              screen_height / 2))
+            screen.fill(black)
+            screen.blit(text, text_rect)
+            if resp == pygame.K_SPACE:
+                resp = []
+                rig_coord_lower_right = hand_pos
+                state_current = "calibrate_lower_left"
+
+        if state_current == "calibrate_lower_left":
+            t_state += clock_state.tick()
+            text = font.render(
+                "Please move to the lower left corner of the screen", True,
+                (255, 255, 255))
+            text_rect = text.get_rect(center=(screen_width / 2,
+                                              screen_height / 2))
+            screen.fill(black)
+            screen.blit(text, text_rect)
+            if resp == pygame.K_SPACE:
+                resp = []
+                rig_coord_lower_left = hand_pos
+                state_current = "state_init"
+                calibrating = False
+
+                x_ul, y_ul = rig_coord_upper_left
+                x_ur, y_ur = rig_coord_upper_right
+                x_ll, y_ll = rig_coord_lower_left
+                x_lr, y_lr = rig_coord_lower_right
+
+                min_x = min(x_ul, x_ur, x_ll, x_lr)
+                max_x = max(x_ul, x_ur, x_ll, x_lr)
+                min_y = min(y_ul, y_ur, y_ll, y_lr)
+                max_y = max(y_ul, y_ur, y_ll, y_lr)
+
+        pygame.display.flip()
 
 running = True
 while running:
@@ -295,18 +390,6 @@ while running:
                         [np.sin(rotation[trial]),
                          np.cos(rotation[trial])]])
 
-    if use_liberty:
-        hand_pos = getPosition(ser, recordsize, averager)
-    else:
-        hand_pos = pygame.mouse.get_pos()
-
-    cursor_pos = np.dot(np.array(hand_pos) - np.array(start_pos),
-                        rot_mat) + start_pos
-
-    # uncomment for debug
-    # pygame.draw.circle(screen, magenta, cursor_pos, cursor_radius, 20)
-    # pygame.draw.circle(screen, yellow, hand_pos, cursor_radius, 20)
-
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
@@ -314,6 +397,26 @@ while running:
                 pygame.quit()
             else:
                 resp = event.key
+
+    if use_liberty:
+        hand_pos = getPosition(ser, recordsize, averager)[0:2]
+
+        x = hand_pos[0]
+        y = hand_pos[1]
+
+        x = -((x - min_x) / (max_x - min_x)) + 1
+        y = -((y - min_y) / (max_y - min_y)) + 1
+
+        x = x * screen_width
+        y = y * screen_height
+
+        hand_pos = (x, y)
+
+    else:
+        hand_pos = pygame.mouse.get_pos()
+
+    cursor_pos = np.dot(np.array(hand_pos) - np.array(start_pos),
+                        rot_mat) + start_pos
 
     if state_current == "state_init":
         t_state += clock_state.tick()
@@ -588,55 +691,6 @@ while running:
         if t_state > 2000:
             t_state = 0
             state_current = "state_searching_ring"
-
-    # TODO: Implement calibration states
-    if state_current == "calibrate_upper_left":
-        t_state += clock_state.tick()
-        text = font.render(
-            "Please move to the upper left corner of the screen", True,
-            (255, 255, 255))
-        text_rect = text.get_rect(center=(screen_width / 2, screen_height / 2))
-        screen.fill(black)
-        screen.blit(text, text_rect)
-        if event.key == pygame.K_SPACE:
-            rig_coord_upper_left = hand_pos
-            state_current = "calibrate_upper_right"
-
-    if state_current == "calibrate_upper_right":
-        t_state += clock_state.tick()
-        text = font.render(
-            "Please move to the upper right corner of the screen", True,
-            (255, 255, 255))
-        text_rect = text.get_rect(center=(screen_width / 2, screen_height / 2))
-        screen.fill(black)
-        screen.blit(text, text_rect)
-        if event.key == pygame.K_SPACE:
-            rig_coord_upper_right = hand_pos
-            state_current = "calibrate_lower_right"
-
-    if state_current == "calibrate_lower_right":
-        t_state += clock_state.tick()
-        text = font.render(
-            "Please move to the lower right corner of the screen", True,
-            (255, 255, 255))
-        text_rect = text.get_rect(center=(screen_width / 2, screen_height / 2))
-        screen.fill(black)
-        screen.blit(text, text_rect)
-        if event.key == pygame.K_SPACE:
-            rig_coord_lower_right = hand_pos
-            state_current = "calibrate_lower_left"
-
-    if state_current == "calibrate_lower_left":
-        t_state += clock_state.tick()
-        text = font.render(
-            "Please move to the lower left corner of the screen", True,
-            (255, 255, 255))
-        text_rect = text.get_rect(center=(screen_width / 2, screen_height / 2))
-        screen.fill(black)
-        screen.blit(text, text_rect)
-        if event.key == pygame.K_SPACE:
-            rig_coord_lower_left = hand_pos
-            state_current = "state_init"
 
     trial_move['condition'].append(condition)
     trial_move['subject'].append(subject)
