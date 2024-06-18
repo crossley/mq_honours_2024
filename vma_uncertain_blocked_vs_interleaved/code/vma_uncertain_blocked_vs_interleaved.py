@@ -37,17 +37,17 @@ from imports import *
 
 """
 
-subject = 1
+subject = 2
 dir_data = "../data"
 full_path = os.path.join(dir_data, f"sub_{subject}_data.csv")
 full_path_move = os.path.join(dir_data, f"sub_{subject}_data_move.csv")
 
-# # Uncomment to check if file already exists
-# if os.path.exists(full_path):
-#     print(f"File {f_name} already exists. Aborting.")
-#     sys.exit()
+ # Uncomment to check if file already exists
+if os.path.exists(full_path):
+     print(f"File {f_name} already exists. Aborting.")
+     sys.exit()
 
-use_liberty = False
+use_liberty = True
 
 
 # This method grabs the position of the sensor
@@ -576,7 +576,7 @@ while running:
     trial_move['y'].append(hand_pos[1])
 
     if use_liberty:
-        flipped_screen = pygame.transform.flip(screen, True, True)
+        flipped_screen = pygame.transform.flip(screen, False, True)
         screen.blit(flipped_screen, (0, 0))
         pygame.display.update()
     else:
