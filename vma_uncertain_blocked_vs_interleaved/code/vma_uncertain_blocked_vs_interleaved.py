@@ -406,7 +406,7 @@ while running:
         y = hand_pos[1]
 
         x = -((x - min_x) / (max_x - min_x)) + 1
-        y = -((y - min_y) / (max_y - min_y)) + 1
+        y = ((y - min_y) / (max_y - min_y)) + 0
 
         x = x * screen_width
         y = y * screen_height
