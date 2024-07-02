@@ -699,7 +699,7 @@ while running:
 
         if t_state > 2000:
             t_state = 0
-            state_current = "state_searching_ring"
+            state_current = "state_iti"
 
     trial_move['condition'].append(condition)
     trial_move['subject'].append(subject)
