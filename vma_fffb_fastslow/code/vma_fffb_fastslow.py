@@ -633,6 +633,7 @@ while running:
                 trial_data['su'].append("inf")
 
             pd.DataFrame(trial_data).to_csv(full_path, index=False)
+            pd.DataFrame(trial_move).to_csv(full_path_move, index=False)
 
             t_state = 0
             state_current = "state_iti"
