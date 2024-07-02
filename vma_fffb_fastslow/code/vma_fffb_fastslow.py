@@ -49,7 +49,7 @@
 
 import sys
 import os
-import serial
+# import serial
 import time
 import struct
 import pygame
@@ -61,6 +61,7 @@ subject = 1
 dir_data = "../data"
 f_name = f"sub_{subject}_data.csv"
 full_path = os.path.join(dir_data, f_name)
+full_path_move = os.path.join(dir_data, f"sub_{subject}_data_move.csv")
 
 # # Uncomment to check if file already exists
 # if os.path.exists(full_path):
