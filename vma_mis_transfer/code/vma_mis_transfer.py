@@ -115,6 +115,7 @@ if use_liberty:
     ser.reset_input_buffer()
     averager = 4
 
+
 # useful constants but need to change / verify on each computer
 pixels_per_inch = 227 / 2
 px_per_cm = pixels_per_inch / 2.54
@@ -185,6 +186,10 @@ ax[2, 0].plot(target_angle, label='target angle')
 [x.legend() for x in ax.flatten()]
 plt.show()
 
+n_trial = rotation.shape[0]
+condition = "mis_rep"
+su = np.ones(n_trial)
+
 pygame.init()
 
 # set small window potentially useful for debugging
@@ -239,6 +244,9 @@ clock_exp = pygame.time.Clock()
 
 t_state = 0.0
 time_exp = 0.0
+
+# initial state
+state_init = "state_init"
 
 # set the current state to the initial state
 state_current = state_init
@@ -404,7 +412,7 @@ while running:
         y = hand_pos[1]
 
         x = -((x - min_x) / (max_x - min_x)) + 1
-        y = -((y - min_y) / (max_y - min_y)) + 1
+        y = ((y - min_y) / (max_y - min_y)) + 0
 
         x = x * screen_width
         y = y * screen_height
@@ -413,6 +421,7 @@ while running:
 
     else:
         hand_pos = pygame.mouse.get_pos()
+
 
     cursor_pos = np.dot(np.array(hand_pos) - np.array(start_pos),
                         rot_mat) + start_pos
