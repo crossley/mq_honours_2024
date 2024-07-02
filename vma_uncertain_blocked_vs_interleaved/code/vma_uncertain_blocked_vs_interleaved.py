@@ -1,4 +1,3 @@
-from imports import *
 """
 - This project aims to following up a surprising finding we
   have recently reported.
@@ -37,17 +36,27 @@ from imports import *
 
 """
 
+import sys
+import os
+# import serial
+import time
+import struct
+import pygame
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
 subject = 2
 dir_data = "../data"
 full_path = os.path.join(dir_data, f"sub_{subject}_data.csv")
 full_path_move = os.path.join(dir_data, f"sub_{subject}_data_move.csv")
 
- # Uncomment to check if file already exists
-if os.path.exists(full_path):
-     print(f"File {f_name} already exists. Aborting.")
-     sys.exit()
+# # Uncomment to check if file already exists
+# if os.path.exists(full_path):
+#      print(f"File {f_name} already exists. Aborting.")
+#      sys.exit()
 
-use_liberty = True
+use_liberty = False
 
 
 # This method grabs the position of the sensor
@@ -550,7 +559,7 @@ while running:
 
         if endpoint_visible[trial]:
             for i in range(n_points):
-                pygame.draw.circle(screen, white, cloud[i], cursor_radius)
+                # pygame.draw.circle(screen, white, cloud[i], cursor_radius)
                 pygame.draw.circle(screen, white, cloud_rot[i], cursor_radius)
 
         if t_state > 1000:

@@ -1,4 +1,3 @@
-from imports import *
 """
 - This project aims to follow Hewitson et al. (2023). There,
   we found that including midpoint feedback -- and thereby
@@ -47,6 +46,16 @@ from imports import *
 - Consent must also currently be given and recorded manually
   in the lab, but we may pivot to automation down the road.
 """
+
+import sys
+import os
+import serial
+import time
+import struct
+import pygame
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 subject = 1
 dir_data = "../data"
@@ -405,7 +414,7 @@ while running:
         y = hand_pos[1]
 
         x = -((x - min_x) / (max_x - min_x)) + 1
-        y = -((y - min_y) / (max_y - min_y)) + 1
+        y = ((y - min_y) / (max_y - min_y)) + 0
 
         x = x * screen_width
         y = y * screen_height
