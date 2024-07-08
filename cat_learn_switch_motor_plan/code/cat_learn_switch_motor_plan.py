@@ -1,5 +1,3 @@
-from imports import *
-from util_func import *
 """
 - This project examines category learning while switching on
   a psuedo-random trial-by-trial basis between between
@@ -50,6 +48,9 @@ from util_func import *
   in the lab, but we may pivot to automation down the road.
 """
 
+from imports import *
+from util_func import *
+
 # set subject number
 subject = 1
 dir_data = "../data"
@@ -60,6 +61,61 @@ full_path = os.path.join(dir_data, f_name)
 # if os.path.exists(full_path):
 #     print(f"File {f_name} already exists. Aborting.")
 #     sys.exit()
+
+condition_1 = {
+    'context': ["S", "S", "D", "D"],
+    'effector': ["L1", "R1", "L1", "R1"],
+    'resp_key': [pygame.K_s, pygame.K_k, pygame.K_s, pygame.K_k],
+    'stim_region': ["A", "B", "A", "B"],
+    'cue_img': [
+        pygame.image.load("../images/2_Finger_Context_1.png"),
+        pygame.image.load("../images/2_Finger_Context_1.png"),
+        pygame.image.load("../images/2_Finger_Context_2.png"),
+        pygame.image.load("../images/2_Finger_Context_2.png")
+    ]
+}
+
+condition_2 = {
+    "context": ["S", "S", "D", "D"],
+    "effector": ["L1", "R1", "L1", "R1"],
+    "resp_key": [pygame.K_s, pygame.K_k, pygame.K_s, pygame.K_k],
+    "stim_region": ["A", "B", "B", "A"],
+    'cue_img': [
+        pygame.image.load("../images/2_Finger_Context_1.png"),
+        pygame.image.load("../images/2_Finger_Context_1.png"),
+        pygame.image.load("../images/2_Finger_Context_2.png"),
+        pygame.image.load("../images/2_Finger_Context_2.png")
+    ]
+}
+
+condition_3 = {
+    "context": ["S", "S", "D", "D"],
+    "effector": ["L1", "R1", "L2", "R2"],
+    "resp_key": [pygame.K_s, pygame.K_k, pygame.K_a, pygame.K_l],
+    "stim_region": ["A", "B", "A", "B"],
+    'cue_img': [
+        pygame.image.load("../images/4_Finger_Context_1.png"),
+        pygame.image.load("../images/4_Finger_Context_1.png"),
+        pygame.image.load("../images/4_Finger_Context_2.png"),
+        pygame.image.load("../images/4_Finger_Context_2.png")
+    ]
+}
+
+condition_4 = {
+    "context": ["S", "S", "D", "D"],
+    "effector": ["L1", "R1", "L2", "R2"],
+    "resp_key": [pygame.K_s, pygame.K_k, pygame.K_a, pygame.K_l],
+    "stim_region": ["A", "B", "B", "A"],
+    'cue_img': [
+        pygame.image.load("../images/4_Finger_Context_1.png"),
+        pygame.image.load("../images/4_Finger_Context_1.png"),
+        pygame.image.load("../images/4_Finger_Context_2.png"),
+        pygame.image.load("../images/4_Finger_Context_2.png")
+    ]
+}
+
+condition_list = [condition_1, condition_2, condition_3, condition_4]
+condition = pd.DataFrame(condition_list[(subject - 1) % 4])
 
 ds = make_stim_cats()
 
@@ -167,37 +223,6 @@ while running:
         screen.fill(black)
         screen.blit(text, text_rect)
 
-        condition_1 = {
-            'context': ["S", "S", "D", "D"],
-            'effector': ["L1", "R1", "L1", "R1"],
-            'resp_key': [pygame.K_x, pygame.K_n, pygame.K_x, pygame.K_n],
-            'stim_region': ["A", "B", "A", "B"]
-        }
-
-        condition_2 = {
-            "context": ["S", "S", "D", "D"],
-            "effector": ["L1", "R1", "L1", "R1"],
-            "resp_key": [pygame.K_x, pygame.K_n, pygame.K_x, pygame.K_n],
-            "stim_region": ["A", "B", "B", "A"]
-        }
-
-        condition_3 = {
-            "context": ["S", "S", "D", "D"],
-            "effector": ["L1", "R1", "L2", "R2"],
-            "resp_key": [pygame.K_x, pygame.K_n, pygame.K_z, pygame.K_m],
-            "stim_region": ["A", "B", "A", "B"]
-        }
-
-        condition_4 = {
-            "context": ["S", "S", "D", "D"],
-            "effector": ["L1", "R1", "L2", "R2"],
-            "resp_key": [pygame.K_x, pygame.K_n, pygame.K_z, pygame.K_m],
-            "stim_region": ["A", "B", "B", "A"]
-        }
-
-        condition_list = [condition_1, condition_2, condition_3, condition_4]
-        condition = pd.DataFrame(condition_list[(subject - 1) % 4])
-
         if resp == pygame.K_SPACE:
             time_state = 0
             resp = -1
@@ -230,7 +255,27 @@ while running:
                 sf = ds['xt'].iloc[trial] * px_per_cm**-1
                 ori = ds['yt'].iloc[trial]
                 cat = ds['cat'].iloc[trial]
-                state_current = "state_stim"
+                state_current = "state_cue"
+
+    if state_current == "state_cue":
+        time_state += clock_state.tick()
+        screen.fill(black)
+
+        if sub_task == 1:
+            cue_img = condition.loc[(condition["context"] == "S"),
+                                    'cue_img'][cat - 1]
+        elif sub_task == 2:
+            cue_img = condition.loc[(condition["context"] == "D"),
+                                    'cue_img'][cat - 1 + 2]
+
+        cue_img = pygame.transform.scale_by(cue_img, 0.5)
+
+        screen.blit(cue_img, (center_x - cue_img.get_width() / 2,
+                              center_y - cue_img.get_height() / 2))
+
+        if time_state > 2000:
+            time_state = 0
+            state_current = "state_stim"
 
     if state_current == "state_stim":
         time_state += clock_state.tick()
@@ -261,9 +306,11 @@ while running:
         time_state += clock_state.tick()
 
         if sub_task == 1:
-            resp_correct = condition.loc[(condition["context"] == "S"), 'resp_key'][cat - 1]
+            resp_correct = condition.loc[(condition["context"] == "S"),
+                                         'resp_key'][cat - 1]
         elif sub_task == 2:
-            resp_correct = condition.loc[(condition["context"] == "D"), 'resp_key'][cat - 1 + 2]
+            resp_correct = condition.loc[(condition["context"] == "D"),
+                                         'resp_key'][cat - 1 + 2]
 
         if resp == resp_correct:
             fb = "Correct"
