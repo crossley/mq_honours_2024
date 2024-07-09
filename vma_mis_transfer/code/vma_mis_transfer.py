@@ -557,7 +557,6 @@ while running:
 
         if endpoint_visible[trial]:
             for i in range(n_points):
-                pygame.draw.circle(screen, white, cloud[i], cursor_radius)
                 pygame.draw.circle(screen, white, cloud_rot[i], cursor_radius)
 
         if t_state > 1000:
