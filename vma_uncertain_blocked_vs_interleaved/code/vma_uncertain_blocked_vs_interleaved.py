@@ -38,7 +38,7 @@
 
 import sys
 import os
-# import serial
+import serial
 import time
 import struct
 import pygame
@@ -512,6 +512,7 @@ while running:
             state_current = "state_searching_cursor"
 
         elif t_state > 2000:
+            rt = t_state
             t_state = 0
             t_state_2 = 0
             state_current = "state_moving"

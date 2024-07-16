@@ -4,7 +4,7 @@
 
 import sys
 import os
-# import serial
+import serial
 import time
 import struct
 import pygame
@@ -229,14 +229,13 @@ cursor_radius = 8
 start_radius = 15
 target_radius = 15
 
-n_points = 20
+n_points = 1
 
 # relevant coords
 center_x = screen.get_width() // 2
 center_y = screen.get_height() // 2
 
 start_pos = (center_x, center_y + 2 * px_per_cm)
-target_pos = (center_x, center_y - 6 * px_per_cm)
 
 # create clocks to keep time
 clock_state = pygame.time.Clock()
@@ -385,7 +384,7 @@ else:
         pygame.display.flip()
 
 # set trials / phases
-trial = 1
+trial = 0
 
 running = True
 while running:
@@ -423,8 +422,10 @@ while running:
         hand_pos = pygame.mouse.get_pos()
 
 
-    cursor_pos = np.dot(np.array(hand_pos) - np.array(start_pos),
-                        rot_mat) + start_pos
+    target_pos_x = 6 * px_per_cm * np.cos(target_angle[trial] * np.pi / 180.0)
+    target_pos_y = 6 * px_per_cm * np.sin(target_angle[trial] * np.pi / 180.0)
+    target_pos = (start_pos[0] + target_pos_x, start_pos[1] + target_pos_y)
+    cursor_pos = np.dot(np.array(hand_pos) - np.array(start_pos), rot_mat) + start_pos
 
     if state_current == "state_init":
         t_state += clock_state.tick()
@@ -510,6 +511,7 @@ while running:
             state_current = "state_searching_cursor"
 
         elif t_state > 2000:
+            rt = t_state
             t_state = 0
             t_state_2 = 0
             state_current = "state_moving"

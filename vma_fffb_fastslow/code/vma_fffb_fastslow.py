@@ -308,10 +308,7 @@ else:
 
         screen.fill((0, 0, 0))
 
-        if use_liberty:
-            hand_pos = getPosition(ser, recordsize, averager)[0:2]
-        else:
-            hand_pos = pygame.mouse.get_pos()
+        hand_pos = getPosition(ser, recordsize, averager)[0:2]
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
@@ -520,6 +517,7 @@ while running:
             state_current = "state_searching_cursor"
 
         elif t_state > 2000:
+            rt = t_state
             t_state = 0
             t_state_2 = 0
             state_current = "state_moving"
