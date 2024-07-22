@@ -1,6 +1,5 @@
 from imports import *
 from util_func import *
-
 """
 - This code runs a replication -- sort of -- of the
   unlearning task from Crossley, Ashby, and Maddox (2013).
@@ -67,7 +66,7 @@ if os.path.exists(full_path):
 
 ds = make_stim_cats()
 
-# # plot the stimuli coloured by label
+# plot the stimuli coloured by label
 # fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(12, 6))
 # sns.scatterplot(data=ds, x="x", y="y", hue="cat", alpha=0.5, ax=ax[0, 0])
 # sns.scatterplot(data=ds, x="xt", y="yt", hue="cat", alpha=0.5, ax=ax[0, 1])
@@ -99,7 +98,8 @@ info = pygame.display.Info()
 screen_width, screen_height = info.current_w, info.current_h
 center_x = screen_width // 2
 center_y = screen_height // 2
-screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+screen = pygame.display.set_mode((screen_width, screen_height),
+                                 pygame.FULLSCREEN)
 
 # Hide the mouse cursor
 pygame.mouse.set_visible(False)
@@ -157,6 +157,21 @@ while running:
                 pygame.quit()
             else:
                 resp = event.key
+
+    if state_current == "state_explicit_instruct":
+        time_state += clock_state.tick()
+        message_instruct = "You have just completed an intervention block that only had 25% valid feedback."
+        message_instruct += "The feedback is reliable now, keep trying to categorize correctly. Please press the space bar to proceed"
+        message_instruct += "Please press the space bar to proceed"
+        text = font.render(message_instruct, True, (255, 255, 255))
+        text_rect = text.get_rect(center=(screen_width / 2, screen_height / 2))
+        screen.fill(grey)
+        screen.blit(text, text_rect)
+
+        if resp == pygame.K_SPACE:
+            time_state = 0
+            resp = -1
+            state_current = "state_iti"
 
     if state_current == "state_init":
         time_state += clock_state.tick()
@@ -285,6 +300,10 @@ while running:
             trial_data['rt'].append(rt)
             pd.DataFrame(trial_data).to_csv(full_path, index=False)
             time_state = 0
-            state_current = "state_iti"
+
+            if trial == 0:
+                state_current = "state_explicit_instruct"
+            else:
+                state_current = "state_iti"
 
     pygame.display.flip()
