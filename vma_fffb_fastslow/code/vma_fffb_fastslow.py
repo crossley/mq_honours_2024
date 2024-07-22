@@ -449,7 +449,29 @@ while running:
     if state_current == "state_iti":
         t_state += clock_state.tick()
         screen.fill(black)
+
         if t_state > 1000:
+
+            trial_data['condition'].append(condition)
+            trial_data['subject'].append(subject)
+            trial_data['trial'].append(trial)
+            trial_data['rotation'].append(np.round(rotation[trial], 2))
+            trial_data['rt'].append(rt)
+            trial_data['mt'].append(mt)
+            trial_data['ep'].append(np.round(ep_theta_hand, 2))
+
+            if su[trial] == su_low:
+                trial_data['su'].append("low")
+            elif su[trial] == su_mid:
+                trial_data['su'].append("mid")
+            elif su[trial] == su_high:
+                trial_data['su'].append("high")
+            elif np.isnan(su[trial]):
+                trial_data['su'].append("inf")
+
+            pd.DataFrame(trial_data).to_csv(full_path, index=False)
+            pd.DataFrame(trial_move).to_csv(full_path_move, index=False)
+
             resp = -1
             rt = -1
             mt = -1
@@ -614,26 +636,6 @@ while running:
         #             pygame.draw.circle(screen, white, cloud[i], cursor_radius)
 
         if t_state > 1000:
-            trial_data['condition'].append(condition)
-            trial_data['subject'].append(subject)
-            trial_data['trial'].append(trial)
-            trial_data['rotation'].append(np.round(rotation[trial], 2))
-            trial_data['rt'].append(rt)
-            trial_data['mt'].append(mt)
-            trial_data['ep'].append(np.round(ep_theta_hand, 2))
-
-            if su[trial] == su_low:
-                trial_data['su'].append("low")
-            elif su[trial] == su_mid:
-                trial_data['su'].append("mid")
-            elif su[trial] == su_high:
-                trial_data['su'].append("high")
-            elif np.isnan(su[trial]):
-                trial_data['su'].append("inf")
-
-            pd.DataFrame(trial_data).to_csv(full_path, index=False)
-            pd.DataFrame(trial_move).to_csv(full_path_move, index=False)
-
             t_state = 0
             state_current = "state_iti"
 
