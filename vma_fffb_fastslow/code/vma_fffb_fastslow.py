@@ -57,16 +57,16 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-subject = 1
+subject = 999
 dir_data = "../data"
 f_name = f"sub_{subject}_data.csv"
 full_path = os.path.join(dir_data, f_name)
 full_path_move = os.path.join(dir_data, f"sub_{subject}_data_move.csv")
 
-# # Uncomment to check if file already exists
-# if os.path.exists(full_path):
-#     print(f"File {f_name} already exists. Aborting.")
-#     sys.exit()
+# Uncomment to check if file already exists
+if os.path.exists(full_path):
+    print(f"File {f_name} already exists. Aborting.")
+    sys.exit()
 
 use_liberty = False
 
@@ -260,6 +260,7 @@ time_exp = 0.0
 rt = -1
 mt = -1
 ep = -1
+ep_theta_hand = -1
 resp = -1
 trial = -1
 
@@ -446,38 +447,42 @@ while running:
         screen.fill(black)
         screen.blit(text, text_rect)
 
+    if state_current == "state_record_trial":
+
+        trial += 1
+        trial_data['condition'].append(condition)
+        trial_data['subject'].append(subject)
+        trial_data['trial'].append(trial)
+        trial_data['rotation'].append(np.round(rotation[trial], 2))
+        trial_data['rt'].append(rt)
+        trial_data['mt'].append(mt)
+        trial_data['ep'].append(np.round(ep_theta_hand, 2))
+
+        if su[trial] == su_low:
+            trial_data['su'].append("low")
+        elif su[trial] == su_mid:
+            trial_data['su'].append("mid")
+        elif su[trial] == su_high:
+            trial_data['su'].append("high")
+        elif np.isnan(su[trial]):
+            trial_data['su'].append("inf")
+
+        pd.DataFrame(trial_data).to_csv(full_path, index=False)
+        pd.DataFrame(trial_move).to_csv(full_path_move, index=False)
+
+        state_current = "state_iti"
+
     if state_current == "state_iti":
         t_state += clock_state.tick()
         screen.fill(black)
 
         if t_state > 1000:
 
-            trial_data['condition'].append(condition)
-            trial_data['subject'].append(subject)
-            trial_data['trial'].append(trial)
-            trial_data['rotation'].append(np.round(rotation[trial], 2))
-            trial_data['rt'].append(rt)
-            trial_data['mt'].append(mt)
-            trial_data['ep'].append(np.round(ep_theta_hand, 2))
-
-            if su[trial] == su_low:
-                trial_data['su'].append("low")
-            elif su[trial] == su_mid:
-                trial_data['su'].append("mid")
-            elif su[trial] == su_high:
-                trial_data['su'].append("high")
-            elif np.isnan(su[trial]):
-                trial_data['su'].append("inf")
-
-            pd.DataFrame(trial_data).to_csv(full_path, index=False)
-            pd.DataFrame(trial_move).to_csv(full_path_move, index=False)
-
             resp = -1
             rt = -1
             mt = -1
             ep = -1
             t_state = 0
-            trial += 1
 
             if not np.isnan(su[trial]):
                 cloud = np.random.multivariate_normal(
@@ -637,7 +642,7 @@ while running:
 
         if t_state > 1000:
             t_state = 0
-            state_current = "state_iti"
+            state_current = "state_record_trial"
 
     if state_current == "too_fast":
         t_state += clock_state.tick()
