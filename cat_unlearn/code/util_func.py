@@ -63,16 +63,28 @@ def make_stim_cats():
     # Put the stimuli and labels together into a dataframe
     ds = pd.DataFrame({'x': stimuli[:, 0], 'y': stimuli[:, 1], 'cat': labels})
 
+    # stimuli is a n x 2 np array of x, y coordinates. Here,
+    # we rotate the stimuli by 90 degress
+    stimuli_rot = np.dot(stimuli - 50, np.array([[0, -1], [1, 0]])) + 50
+    ds_rot = pd.DataFrame({'x': stimuli_rot[:, 0], 'y': stimuli_rot[:, 1], 'cat': labels})
+    ds_rot = ds_rot.sample(frac=1).reset_index(drop=True)
+    ds_rot['xt'] = ds_rot['x'] * 5 / 100
+    ds_rot['yt'] = (ds_rot['y'] * 90 / 100) * np.pi / 180
+
+    # add condition columns
+    ds['condition'] = 'relearn'
+    ds_rot['condition'] = 'new_learn'
+
+    # Concatenate the two dataframes
+    ds_combined = pd.concat([ds, ds_rot], ignore_index=True)
+
     # Add a transformed version of the stimuli
     # let xt map x from [0, 100] to [0, 5]
     # let yt map y from [0, 100] to [0, 90]
-    ds['xt'] = ds['x'] * 5 / 100
-    ds['yt'] = (ds['y'] * 90 / 100) * np.pi / 180
+    ds_combined['xt'] = ds_combined['x'] * 5 / 100
+    ds_combined['yt'] = (ds_combined['y'] * 90 / 100) * np.pi / 180
 
-    # shuffle rows of ds
-    ds = ds.sample(frac=1).reset_index(drop=True)
-
-    return ds
+    return ds_combined
 
 
 def create_grating_patch(size, freq, theta):
