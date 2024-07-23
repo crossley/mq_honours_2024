@@ -231,6 +231,7 @@ while running:
                 sf = ds['xt'].iloc[trial] * px_per_cm**-1
                 ori = ds['yt'].iloc[trial]
                 cat = ds['cat'].iloc[trial]
+                resp = -1
                 state_current = "state_stim"
 
     if state_current == "state_stim":
@@ -243,60 +244,61 @@ while running:
         if (resp == pygame.K_d) or (resp == pygame.K_k):
             rt = time_state
             time_state = 0
-            state_current = "state_feedback"
 
-    if state_current == "state_feedback":
-        time_state += clock_state.tick()
+            # Give veridical feedback in all conditions during acquisition and reacquisition
+            if (trial < 300) or (trial >= 600):
+                if resp == pygame.K_d:
+                    resp = "A"
+                    if cat == "A":
+                        fb = "Correct"
+                    else:
+                        fb = "Incorrect"
 
-        # Give veridical feedback in all conditions during acquisition and reacquisition
-        if (trial < 300) or (trial >= 600):
-            if resp == pygame.K_d:
-                resp = "A"
-                if cat == "A":
-                    fb = "Correct"
-                else:
-                    fb = "Incorrect"
-
-            elif resp == pygame.K_k:
-                resp = "B"
-                if cat == "B":
-                    fb = "Correct"
-                else:
-                    fb = "Incorrect"
-        else:
-            # Exp 1: random feedback during intervention
-            if condition["experiment"] == 1 and condition[
-                    "condition"] == "relearn":
-                # random feedback
-                if np.random.rand() < 0.5:
-                    fb = "Correct"
-                else:
-                    fb = "Incorrect"
-
-            # Exp 2 and 3: 7525 mixed intervention
+                elif resp == pygame.K_k:
+                    resp = "B"
+                    if cat == "B":
+                        fb = "Correct"
+                    else:
+                        fb = "Incorrect"
             else:
-                # give veridical feedback 25% of the time
-                if np.random.rand() < 0.25:
-                    if resp == pygame.K_d:
-                        resp = "A"
-                        if cat == "A":
-                            fb = "Correct"
-                        else:
-                            fb = "Incorrect"
-
-                    elif resp == pygame.K_k:
-                        resp = "B"
-                        if cat == "B":
-                            fb = "Correct"
-                        else:
-                            fb = "Incorrect"
-
-                # Give 100% random feedback the rest of the time
-                else:
+                # Exp 1: random feedback during intervention
+                if condition["experiment"] == 1 and condition[
+                        "condition"] == "relearn":
+                    # random feedback
                     if np.random.rand() < 0.5:
                         fb = "Correct"
                     else:
                         fb = "Incorrect"
+
+                # Exp 2 and 3: 7525 mixed intervention
+                else:
+                    # give veridical feedback 25% of the time
+                    if np.random.rand() < 0.25:
+                        if resp == pygame.K_d:
+                            resp = "A"
+                            if cat == "A":
+                                fb = "Correct"
+                            else:
+                                fb = "Incorrect"
+
+                        elif resp == pygame.K_k:
+                            resp = "B"
+                            if cat == "B":
+                                fb = "Correct"
+                            else:
+                                fb = "Incorrect"
+
+                    # Give 100% random feedback the rest of the time
+                    else:
+                        if np.random.rand() < 0.5:
+                            fb = "Correct"
+                        else:
+                            fb = "Incorrect"
+
+            state_current = "state_feedback"
+
+    if state_current == "state_feedback":
+        time_state += clock_state.tick()
 
         if fb == "Correct":
             pygame.draw.circle(screen, green, (center_x, center_y),
