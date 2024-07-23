@@ -27,42 +27,24 @@
   that unique motor effectors (e.g., fingers) be used,
   unique goal positions (e.g., response key), or both? We
   address that question here.
-
-- There are four conditions: 2F2K, 2F4K, 4F2K, 4F4K. The
-  first number indicates the number of fingers used and the
-  second number indicates the number of keys used. The 2F2K
-  and 4F4K conditions are replications of Crossley et al
-  referenced above.
-
-- Subjects are assigned to a condition based on their
-  subject number.
-
-- There is not currently a way to pause the experiment and
-  there are no blocks or breaks. We may wish to add these
-  but we can pilot without them to find out.
-
-- Task instructions must be given verbally in the lab. They
-  are not automated in this code.
-
-- Consent must also currently be given and recorded manually
-  in the lab, but we may pivot to automation down the road.
 """
 
 from imports import *
 from util_func import *
 
 # set subject number
-subject = 1
+subject = 3
 dir_data = "../data"
 f_name = f"sub_{subject}_data.csv"
 full_path = os.path.join(dir_data, f_name)
 
 # Uncomment to check if file already exists
-# if os.path.exists(full_path):
-#     print(f"File {f_name} already exists. Aborting.")
-#     sys.exit()
+if os.path.exists(full_path):
+    print(f"File {f_name} already exists. Aborting.")
+    sys.exit()
 
 condition_1 = {
+    'name': "2F2K_congruent",
     'context': ["S", "S", "D", "D"],
     'effector': ["L1", "R1", "L1", "R1"],
     'resp_key': [pygame.K_s, pygame.K_k, pygame.K_s, pygame.K_k],
@@ -76,6 +58,7 @@ condition_1 = {
 }
 
 condition_2 = {
+    "name": "2F2K_incongruent",
     "context": ["S", "S", "D", "D"],
     "effector": ["L1", "R1", "L1", "R1"],
     "resp_key": [pygame.K_s, pygame.K_k, pygame.K_s, pygame.K_k],
@@ -89,6 +72,7 @@ condition_2 = {
 }
 
 condition_3 = {
+    "name": "4F4K_congruent",
     "context": ["S", "S", "D", "D"],
     "effector": ["L1", "R1", "L2", "R2"],
     "resp_key": [pygame.K_s, pygame.K_k, pygame.K_a, pygame.K_l],
@@ -102,6 +86,7 @@ condition_3 = {
 }
 
 condition_4 = {
+    "name": "4F4K_incongruent",
     "context": ["S", "S", "D", "D"],
     "effector": ["L1", "R1", "L2", "R2"],
     "resp_key": [pygame.K_s, pygame.K_k, pygame.K_a, pygame.K_l],
@@ -119,13 +104,13 @@ condition = pd.DataFrame(condition_list[(subject - 1) % 4])
 
 ds = make_stim_cats()
 
-# # plot the stimuli coloured by label
-# fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(12, 6))
-# sns.scatterplot(data=ds, x="x", y="y", hue="cat", alpha=0.5, ax=ax[0, 0])
-# sns.scatterplot(data=ds, x="xt", y="yt", hue="cat", alpha=0.5, ax=ax[0, 1])
-# ax[0, 0].plot([0, 100], [0, 100], 'k--')
-# ax[0, 1].plot([0, 5], [0, np.pi / 2], 'k--')
-# plt.show()
+# plot the stimuli coloured by label
+fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(12, 6))
+sns.scatterplot(data=ds, x="x", y="y", hue="cat", alpha=0.5, ax=ax[0, 0])
+sns.scatterplot(data=ds, x="xt", y="yt", hue="cat", alpha=0.5, ax=ax[0, 1])
+ax[0, 0].plot([0, 100], [0, 100], 'k--')
+ax[0, 1].plot([0, 5], [0, np.pi / 2], 'k--')
+plt.show()
 
 # plot_stim_space_examples(ds)
 
@@ -190,6 +175,7 @@ sub_task = np.random.choice([1, 2])
 
 # record keeping
 trial_data = {
+    'condition': [],
     'subject': [],
     'trial': [],
     'sub_task': [],
@@ -199,7 +185,8 @@ trial_data = {
     'xt': [],
     'yt': [],
     'resp': [],
-    'rt': []
+    'rt': [],
+    'fb': []
 }
 
 running = True
@@ -249,7 +236,7 @@ while running:
             time_state = 0
             sub_task = np.random.choice([1, 2])
             trial += 1
-            if trial == n_trial:
+            if trial == n_trial - 1:
                 state_current = "state_finished"
             else:
                 sf = ds['xt'].iloc[trial] * px_per_cm**-1
@@ -306,11 +293,9 @@ while running:
         time_state += clock_state.tick()
 
         if sub_task == 1:
-            resp_correct = condition.loc[(condition["context"] == "S"),
-                                         'resp_key'][cat - 1]
+            resp_correct = condition.loc[(condition["context"] == "S"), 'resp_key'][cat - 1]
         elif sub_task == 2:
-            resp_correct = condition.loc[(condition["context"] == "D"),
-                                         'resp_key'][cat - 1 + 2]
+            resp_correct = condition.loc[(condition["context"] == "D"), 'resp_key'][cat - 1 + 2]
 
         if resp == resp_correct:
             fb = "Correct"
@@ -318,26 +303,42 @@ while running:
             fb = "Incorrect"
 
         if fb == "Correct":
-            pygame.draw.circle(screen, green, (center_x, center_y),
-                               size_px / 2 + 10, 5)
+            pygame.draw.circle(screen, green, (center_x, center_y), size_px / 2 + 10, 5)
 
         elif fb == "Incorrect":
-            pygame.draw.circle(screen, red, (center_x, center_y),
-                               size_px / 2 + 10, 5)
+            pygame.draw.circle(screen, red, (center_x, center_y), size_px / 2 + 10, 5)
 
         if time_state > 1000:
+            trial_data['condition'].append(condition['name'][0])
             trial_data['subject'].append(subject)
             trial_data['trial'].append(trial)
             trial_data['sub_task'].append(sub_task)
-            trial_data['cat'].append(cat)
             trial_data['x'].append(np.round(ds.x[trial], 2))
             trial_data['y'].append(np.round(ds.y[trial], 2))
             trial_data['xt'].append(np.round(sf, 2))
             trial_data['yt'].append(np.round(ori, 2))
-            trial_data['resp'].append(resp)
+            # trial_data['cat'].append(cat)
+            # trial_data['resp'].append(resp)
+            trial_data['cat'].append(condition.loc[condition['resp_key'] == resp_correct, 'stim_region'].values[0])
+            trial_data['resp'].append(condition.loc[condition['resp_key'] == resp, 'stim_region'].values[0])
             trial_data['rt'].append(rt)
+            trial_data['fb'].append(fb)
             pd.DataFrame(trial_data).to_csv(full_path, index=False)
             time_state = 0
             state_current = "state_iti"
 
     pygame.display.flip()
+
+# condition_1 = {
+#     'name': "2F2K_congruent",
+#     'context': ["S", "S", "D", "D"],
+#     'effector': ["L1", "R1", "L1", "R1"],
+#     'resp_key': [pygame.K_s, pygame.K_k, pygame.K_s, pygame.K_k],
+#     'stim_region': ["A", "B", "A", "B"],
+#     'cue_img': [
+#         pygame.image.load("../images/2_Finger_Context_1.png"),
+#         pygame.image.load("../images/2_Finger_Context_1.png"),
+#         pygame.image.load("../images/2_Finger_Context_2.png"),
+#         pygame.image.load("../images/2_Finger_Context_2.png")
+#     ]
+# }

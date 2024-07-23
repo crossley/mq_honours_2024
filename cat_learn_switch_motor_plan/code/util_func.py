@@ -3,7 +3,7 @@ from imports import *
 
 def make_stim_cats():
 
-    n_stimuli_per_category = 450
+    n_stimuli_per_category = 200
 
     # Define covariance matrix parameters
     var = 100
