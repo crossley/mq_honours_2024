@@ -33,7 +33,7 @@ from imports import *
 from util_func import *
 
 # set subject number
-subject = 3
+subject = 1
 dir_data = "../data"
 f_name = f"sub_{subject}_data.csv"
 full_path = os.path.join(dir_data, f_name)
@@ -110,6 +110,7 @@ sns.scatterplot(data=ds, x="x", y="y", hue="cat", alpha=0.5, ax=ax[0, 0])
 sns.scatterplot(data=ds, x="xt", y="yt", hue="cat", alpha=0.5, ax=ax[0, 1])
 ax[0, 0].plot([0, 100], [0, 100], 'k--')
 ax[0, 1].plot([0, 5], [0, np.pi / 2], 'k--')
+ax[0, 0].set_title(condition['name'][0])
 plt.show()
 
 # plot_stim_space_examples(ds)
@@ -249,11 +250,9 @@ while running:
         screen.fill(black)
 
         if sub_task == 1:
-            cue_img = condition.loc[(condition["context"] == "S"),
-                                    'cue_img'][cat - 1]
+            cue_img = condition.loc[(condition["context"] == "S"), 'cue_img'][cat - 1]
         elif sub_task == 2:
-            cue_img = condition.loc[(condition["context"] == "D"),
-                                    'cue_img'][cat - 1 + 2]
+            cue_img = condition.loc[(condition["context"] == "D"), 'cue_img'][cat - 1 + 2]
 
         cue_img = pygame.transform.scale_by(cue_img, 0.5)
 
@@ -328,17 +327,3 @@ while running:
             state_current = "state_iti"
 
     pygame.display.flip()
-
-# condition_1 = {
-#     'name': "2F2K_congruent",
-#     'context': ["S", "S", "D", "D"],
-#     'effector': ["L1", "R1", "L1", "R1"],
-#     'resp_key': [pygame.K_s, pygame.K_k, pygame.K_s, pygame.K_k],
-#     'stim_region': ["A", "B", "A", "B"],
-#     'cue_img': [
-#         pygame.image.load("../images/2_Finger_Context_1.png"),
-#         pygame.image.load("../images/2_Finger_Context_1.png"),
-#         pygame.image.load("../images/2_Finger_Context_2.png"),
-#         pygame.image.load("../images/2_Finger_Context_2.png")
-#     ]
-# }
