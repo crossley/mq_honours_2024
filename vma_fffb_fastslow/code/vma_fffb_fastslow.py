@@ -699,7 +699,7 @@ while running:
         a4 = -15
         a5 = 6
 
-        total_time = 1000
+        total_time = np.mean([mt_too_slow, mt_too_fast])
         normalized_time = t_state / total_time
         if normalized_time < 1:
             t = normalized_time
@@ -708,7 +708,7 @@ while running:
                 start_pos[0], start_pos[1] + (target_pos[1] - start_pos[1]) * y
             ]
 
-            pygame.draw.circle(screen, (255, 0, 0), position, cursor_radius)
+            pygame.draw.circle(screen, white, position, cursor_radius)
 
         if t_state > 2000:
             t_state = 0
