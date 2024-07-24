@@ -202,6 +202,12 @@ rotation[n_trial // 3:2 * n_trial // 3] = 15 * np.pi / 180
 mpep_visible = np.zeros(n_trial)
 mpep_visible[:2 * n_trial // 3:] = 1
 
+fig, ax = plt.subplots(2, 1, squeeze=False, figsize=(10, 5))
+tt = np.arange(n_trial)
+ax[0, 0].scatter(tt, rotation)
+ax[1, 0].scatter(tt, su)
+plt.show()
+
 n_cloud_dots = 20
 
 pygame.init()
