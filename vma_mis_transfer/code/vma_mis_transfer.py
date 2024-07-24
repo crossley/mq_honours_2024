@@ -17,10 +17,10 @@ dir_data = "../data"
 full_path = os.path.join(dir_data, f"sub_{subject}_data.csv")
 full_path_move = os.path.join(dir_data, f"sub_{subject}_data_move.csv")
 
-# # Uncomment to check if file already exists
-# if os.path.exists(full_path):
-#     print(f"File {f_name} already exists. Aborting.")
-#     sys.exit()
+# Uncomment to check if file already exists
+if os.path.exists(full_path):
+    print(f"File {f_name} already exists. Aborting.")
+    sys.exit()
 
 use_liberty = False
 
@@ -114,7 +114,6 @@ if use_liberty:
     recordsize = ser.inWaiting()
     ser.reset_input_buffer()
     averager = 4
-
 
 # useful constants but need to change / verify on each computer
 pixels_per_inch = 227 / 2
@@ -261,6 +260,7 @@ trial_data = {
     'condition': [],
     'subject': [],
     'trial': [],
+    'target_angle': [],
     'su': [],
     'rotation': [],
     'rt': [],
@@ -421,11 +421,11 @@ while running:
     else:
         hand_pos = pygame.mouse.get_pos()
 
-
-    target_pos_x = 6 * px_per_cm * np.cos(target_angle[trial] * np.pi / 180.0)
-    target_pos_y = 6 * px_per_cm * np.sin(target_angle[trial] * np.pi / 180.0)
+    target_pos_x = -6 * px_per_cm * np.cos(-(target_angle[trial] + 90) * np.pi / 180.0)
+    target_pos_y = 6 * px_per_cm * np.sin(-(target_angle[trial] + 90) * np.pi / 180.0)
     target_pos = (start_pos[0] + target_pos_x, start_pos[1] + target_pos_y)
-    cursor_pos = np.dot(np.array(hand_pos) - np.array(start_pos), rot_mat) + start_pos
+    cursor_pos = np.dot(np.array(hand_pos) - np.array(start_pos),
+                        rot_mat) + start_pos
 
     if state_current == "state_init":
         t_state += clock_state.tick()
@@ -565,6 +565,7 @@ while running:
             trial_data['condition'].append(condition)
             trial_data['subject'].append(subject)
             trial_data['trial'].append(trial)
+            trial_data['target_angle'].append(target_angle[trial])
             trial_data['su'].append(np.round(su[trial], 2))
             trial_data['rotation'].append(np.round(rotation[trial], 2))
             trial_data['rt'].append(rt)
