@@ -11,6 +11,9 @@ import pygame
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from datetime import datetime
+
+current_date = datetime.now().strftime("%Y-%m-%d")
 
 subject = 1
 dir_data = "../data"
@@ -257,6 +260,7 @@ resp = -1
 
 # record keeping
 trial_data = {
+    'date': [],
     'condition': [],
     'subject': [],
     'trial': [],
@@ -562,6 +566,7 @@ while running:
                 pygame.draw.circle(screen, white, cloud_rot[i], cursor_radius)
 
         if t_state > 1000:
+            trial_data['date'].append(current_date)
             trial_data['condition'].append(condition)
             trial_data['subject'].append(subject)
             trial_data['trial'].append(trial)

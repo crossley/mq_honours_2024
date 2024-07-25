@@ -51,10 +51,10 @@ dir_data = "../data"
 full_path = os.path.join(dir_data, f"sub_{subject}_data.csv")
 full_path_move = os.path.join(dir_data, f"sub_{subject}_data_move.csv")
 
-# # Uncomment to check if file already exists
-# if os.path.exists(full_path):
-#      print(f"File {f_name} already exists. Aborting.")
-#      sys.exit()
+# Uncomment to check if file already exists
+if os.path.exists(full_path):
+     print(f"File {f_name} already exists. Aborting.")
+     sys.exit()
 
 use_liberty = False
 

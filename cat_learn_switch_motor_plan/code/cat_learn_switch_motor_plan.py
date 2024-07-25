@@ -44,7 +44,8 @@ if os.path.exists(full_path):
     sys.exit()
 
 condition_1 = {
-    'name': "2F2K_congruent",
+    'name':
+    "2F2K_congruent",
     'context': ["S", "S", "D", "D"],
     'effector': ["L1", "R1", "L1", "R1"],
     'resp_key': [pygame.K_s, pygame.K_k, pygame.K_s, pygame.K_k],
@@ -58,7 +59,8 @@ condition_1 = {
 }
 
 condition_2 = {
-    "name": "2F2K_incongruent",
+    "name":
+    "2F2K_incongruent",
     "context": ["S", "S", "D", "D"],
     "effector": ["L1", "R1", "L1", "R1"],
     "resp_key": [pygame.K_s, pygame.K_k, pygame.K_s, pygame.K_k],
@@ -72,7 +74,8 @@ condition_2 = {
 }
 
 condition_3 = {
-    "name": "4F4K_congruent",
+    "name":
+    "4F4K_congruent",
     "context": ["S", "S", "D", "D"],
     "effector": ["L1", "R1", "L2", "R2"],
     "resp_key": [pygame.K_s, pygame.K_k, pygame.K_a, pygame.K_l],
@@ -86,7 +89,8 @@ condition_3 = {
 }
 
 condition_4 = {
-    "name": "4F4K_incongruent",
+    "name":
+    "4F4K_incongruent",
     "context": ["S", "S", "D", "D"],
     "effector": ["L1", "R1", "L2", "R2"],
     "resp_key": [pygame.K_s, pygame.K_k, pygame.K_a, pygame.K_l],
@@ -205,6 +209,7 @@ while running:
 
     if state_current == "state_init":
         time_state += clock_state.tick()
+
         text = font.render("Please press the space bar to begin", True,
                            (255, 255, 255))
         text_rect = text.get_rect(center=(screen_width / 2, screen_height / 2))
@@ -250,9 +255,11 @@ while running:
         screen.fill(black)
 
         if sub_task == 1:
-            cue_img = condition.loc[(condition["context"] == "S"), 'cue_img'][cat - 1]
+            cue_img = condition.loc[(condition["context"] == "S"),
+                                    'cue_img'][cat - 1]
         elif sub_task == 2:
-            cue_img = condition.loc[(condition["context"] == "D"), 'cue_img'][cat - 1 + 2]
+            cue_img = condition.loc[(condition["context"] == "D"),
+                                    'cue_img'][cat - 1 + 2]
 
         cue_img = pygame.transform.scale_by(cue_img, 0.5)
 
@@ -261,6 +268,7 @@ while running:
 
         if time_state > 2000:
             time_state = 0
+            resp = -1
             state_current = "state_stim"
 
     if state_current == "state_stim":
@@ -286,26 +294,31 @@ while running:
         if np.isin(resp, condition['resp_key']):
             rt = time_state
             time_state = 0
+
+            if sub_task == 1:
+                resp_correct = condition.loc[(condition["context"] == "S"),
+                                             'resp_key'][cat - 1]
+            elif sub_task == 2:
+                resp_correct = condition.loc[(condition["context"] == "D"),
+                                             'resp_key'][cat - 1 + 2]
+
+            if resp == resp_correct:
+                fb = "Correct"
+            else:
+                fb = "Incorrect"
+
             state_current = "state_feedback"
 
     if state_current == "state_feedback":
         time_state += clock_state.tick()
 
-        if sub_task == 1:
-            resp_correct = condition.loc[(condition["context"] == "S"), 'resp_key'][cat - 1]
-        elif sub_task == 2:
-            resp_correct = condition.loc[(condition["context"] == "D"), 'resp_key'][cat - 1 + 2]
-
-        if resp == resp_correct:
-            fb = "Correct"
-        else:
-            fb = "Incorrect"
-
         if fb == "Correct":
-            pygame.draw.circle(screen, green, (center_x, center_y), size_px / 2 + 10, 5)
+            pygame.draw.circle(screen, green, (center_x, center_y),
+                               size_px / 2 + 10, 5)
 
         elif fb == "Incorrect":
-            pygame.draw.circle(screen, red, (center_x, center_y), size_px / 2 + 10, 5)
+            pygame.draw.circle(screen, red, (center_x, center_y),
+                               size_px / 2 + 10, 5)
 
         if time_state > 1000:
             trial_data['condition'].append(condition['name'][0])
@@ -318,8 +331,12 @@ while running:
             trial_data['yt'].append(np.round(ori, 2))
             # trial_data['cat'].append(cat)
             # trial_data['resp'].append(resp)
-            trial_data['cat'].append(condition.loc[condition['resp_key'] == resp_correct, 'stim_region'].values[0])
-            trial_data['resp'].append(condition.loc[condition['resp_key'] == resp, 'stim_region'].values[0])
+            trial_data['cat'].append(
+                condition.loc[condition['resp_key'] == resp_correct,
+                              'stim_region'].values[0])
+            trial_data['resp'].append(
+                condition.loc[condition['resp_key'] == resp,
+                              'stim_region'].values[0])
             trial_data['rt'].append(rt)
             trial_data['fb'].append(fb)
             pd.DataFrame(trial_data).to_csv(full_path, index=False)

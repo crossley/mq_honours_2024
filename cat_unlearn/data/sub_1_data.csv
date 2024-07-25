@@ -1,2 +1,2 @@
-subject,trial,cat,x,y,xt,yt,resp,rt
-1,0,B,75.83,61.64,0.08,0.97,B,314
+experiment,condition,subject,trial,cat,x,y,xt,yt,resp,rt
+1,relearn,1,0,A,16.76,37.62,0.02,0.59,B,266
