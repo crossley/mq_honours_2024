@@ -1,0 +1,5 @@
+cat_learn_switch_motor_plan/data/*
+cat_unlearn/data/*
+vma_fffb_fastslow/data/*
+vma_mis_transfer/data/*
+vma_uncertain_blocked_vs_interleaved/data/*
