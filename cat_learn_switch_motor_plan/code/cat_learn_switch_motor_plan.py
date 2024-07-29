@@ -33,7 +33,7 @@ from imports import *
 from util_func import *
 
 # set subject number
-subject = 1
+subject = 2
 dir_data = "../data"
 f_name = f"sub_{subject}_data.csv"
 full_path = os.path.join(dir_data, f_name)
@@ -296,13 +296,20 @@ while running:
             time_state = 0
 
             if sub_task == 1:
-                resp_correct = condition.loc[(condition["context"] == "S"),
-                                             'resp_key'][cat - 1]
-            elif sub_task == 2:
-                resp_correct = condition.loc[(condition["context"] == "D"),
-                                             'resp_key'][cat - 1 + 2]
+                cat = condition.loc[(condition["context"] == "S"),
+                                    'stim_region'].values[cat - 1]
+                resp = condition.loc[(condition['resp_key'] == resp) &
+                                     (condition["context"] == "S"),
+                                     'stim_region'].values[0]
 
-            if resp == resp_correct:
+            elif sub_task == 2:
+                cat = condition.loc[(condition["context"] == "D"),
+                                    'stim_region'].values[cat - 1]
+                resp = condition.loc[(condition['resp_key'] == resp) &
+                                     (condition["context"] == "D"),
+                                     'stim_region'].values[0]
+
+            if cat == resp:
                 fb = "Correct"
             else:
                 fb = "Incorrect"
@@ -329,14 +336,8 @@ while running:
             trial_data['y'].append(np.round(ds.y[trial], 2))
             trial_data['xt'].append(np.round(sf, 2))
             trial_data['yt'].append(np.round(ori, 2))
-            # trial_data['cat'].append(cat)
-            # trial_data['resp'].append(resp)
-            trial_data['cat'].append(
-                condition.loc[condition['resp_key'] == resp_correct,
-                              'stim_region'].values[0])
-            trial_data['resp'].append(
-                condition.loc[condition['resp_key'] == resp,
-                              'stim_region'].values[0])
+            trial_data['cat'].append(cat)
+            trial_data['resp'].append(resp)
             trial_data['rt'].append(rt)
             trial_data['fb'].append(fb)
             pd.DataFrame(trial_data).to_csv(full_path, index=False)
