@@ -256,10 +256,10 @@ while running:
 
         if sub_task == 1:
             cue_img = condition.loc[(condition["context"] == "S"),
-                                    'cue_img'][cat - 1]
+                                    'cue_img'].values[0]
         elif sub_task == 2:
             cue_img = condition.loc[(condition["context"] == "D"),
-                                    'cue_img'][cat - 1 + 2]
+                                    'cue_img'].values[0]
 
         cue_img = pygame.transform.scale_by(cue_img, 0.5)
 
@@ -291,25 +291,33 @@ while running:
         screen.blit(grating_surface,
                     (center_x - size_px / 2, center_y - size_px / 2))
 
-        if np.isin(resp, condition['resp_key']):
+        if sub_task == 1:
+            resp_key_context = condition.loc[condition["context"] == "S",
+                                             "resp_key"]
+
+        elif sub_task == 2:
+            resp_key_context = condition.loc[condition["context"] == "D",
+                                             "resp_key"]
+
+        if np.isin(resp, resp_key_context):
             rt = time_state
             time_state = 0
 
             if sub_task == 1:
-                cat = condition.loc[(condition["context"] == "S"),
-                                    'stim_region'].values[cat - 1]
-                resp = condition.loc[(condition['resp_key'] == resp) &
-                                     (condition["context"] == "S"),
-                                     'stim_region'].values[0]
+
+                resp_corr = condition.loc[
+                    (condition["context"] == "S")
+                    & (condition["stim_region"] == ["A", "B"][cat - 1][0]),
+                    'resp_key'].values[0]
 
             elif sub_task == 2:
-                cat = condition.loc[(condition["context"] == "D"),
-                                    'stim_region'].values[cat - 1]
-                resp = condition.loc[(condition['resp_key'] == resp) &
-                                     (condition["context"] == "D"),
-                                     'stim_region'].values[0]
 
-            if cat == resp:
+                resp_corr = condition.loc[
+                    (condition["context"] == "D")
+                    & (condition["stim_region"] == ["A", "B"][cat - 1][0]),
+                    'resp_key'].values[0]
+
+            if resp == resp_corr:
                 fb = "Correct"
             else:
                 fb = "Incorrect"
@@ -336,7 +344,7 @@ while running:
             trial_data['y'].append(np.round(ds.y[trial], 2))
             trial_data['xt'].append(np.round(sf, 2))
             trial_data['yt'].append(np.round(ori, 2))
-            trial_data['cat'].append(cat)
+            trial_data['cat'].append(resp_corr)
             trial_data['resp'].append(resp)
             trial_data['rt'].append(rt)
             trial_data['fb'].append(fb)

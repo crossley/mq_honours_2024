@@ -11,7 +11,7 @@ def make_stim_cats():
     sigma = np.sqrt(var)
 
     # Rotation matrix
-    theta = np.arctan(1)
+    theta = 45 * np.pi / 180
     rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)],
                                 [np.sin(theta), np.cos(theta)]])
 
