@@ -417,7 +417,9 @@ else:
                 min_y = min(y_ul, y_ur, y_ll, y_lr)
                 max_y = max(y_ul, y_ur, y_ll, y_lr)
 
-        pygame.display.flip()
+        flipped_screen = pygame.transform.flip(screen, False, True)
+        screen.blit(flipped_screen, (0, 0))
+        pygame.display.update()
 
 running = True
 while running:
