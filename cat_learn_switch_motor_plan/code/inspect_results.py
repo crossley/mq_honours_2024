@@ -3,11 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-d1 = pd.read_csv('../data/condition_1.csv')
-# d2 = pd.read_csv('../data/condition_2.csv')
+d1 = pd.read_csv('../data/sub_1_data.csv')
 d2 = pd.read_csv('../data/sub_2_data.csv')
-d3 = pd.read_csv('../data/condition_3.csv')
-d4 = pd.read_csv('../data/condition_4.csv')
+d3 = pd.read_csv('../data/sub_3_data.csv')
+d4 = pd.read_csv('../data/sub_4_data.csv')
 
 d1.condition.unique()
 d2.condition.unique()

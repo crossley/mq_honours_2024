@@ -305,10 +305,7 @@ else:
 
         screen.fill((0, 0, 0))
 
-        if use_liberty:
-            hand_pos = getPosition(ser, recordsize, averager)[0:2]
-        else:
-            hand_pos = pygame.mouse.get_pos()
+        hand_pos = getPosition(ser, recordsize, averager)[0:2]
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
@@ -327,6 +324,12 @@ else:
                                               screen_height / 2))
             screen.fill(black)
             screen.blit(text, text_rect)
+
+            pos_x = 0
+            pos_y = 0
+            pos = (pos_x, pos_y)
+            pygame.draw.circle(screen, white, pos, 15, 0)
+
             if resp == pygame.K_SPACE:
                 resp = []
                 rig_coord_upper_left = hand_pos
@@ -341,6 +344,12 @@ else:
                                               screen_height / 2))
             screen.fill(black)
             screen.blit(text, text_rect)
+
+            pos_x = screen.get_width()
+            pos_y = 0
+            pos = (pos_x, pos_y)
+            pygame.draw.circle(screen, white, pos, 15, 0)
+
             if resp == pygame.K_SPACE:
                 resp = []
                 rig_coord_upper_right = hand_pos
@@ -355,6 +364,12 @@ else:
                                               screen_height / 2))
             screen.fill(black)
             screen.blit(text, text_rect)
+
+            pos_x = screen.get_width()
+            pos_y = screen.get_height()
+            pos = (pos_x, pos_y)
+            pygame.draw.circle(screen, white, pos, 15, 0)
+
             if resp == pygame.K_SPACE:
                 resp = []
                 rig_coord_lower_right = hand_pos
@@ -367,8 +382,15 @@ else:
                 (255, 255, 255))
             text_rect = text.get_rect(center=(screen_width / 2,
                                               screen_height / 2))
+
             screen.fill(black)
             screen.blit(text, text_rect)
+
+            pos_x = 0
+            pos_y = screen.get_height()
+            pos = (pos_x, pos_y)
+            pygame.draw.circle(screen, white, pos, 15, 0)
+
             if resp == pygame.K_SPACE:
                 resp = []
                 rig_coord_lower_left = hand_pos
@@ -385,7 +407,9 @@ else:
                 min_y = min(y_ul, y_ur, y_ll, y_lr)
                 max_y = max(y_ul, y_ur, y_ll, y_lr)
 
-        pygame.display.flip()
+        flipped_screen = pygame.transform.flip(screen, False, True)
+        screen.blit(flipped_screen, (0, 0))
+        pygame.display.update()
 
 # set trials / phases
 trial = 0
