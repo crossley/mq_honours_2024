@@ -7,7 +7,7 @@ Exp 3: Explicit Instructions
 """
 
 # set subject number
-subject = 1
+subject = 2
 dir_data = "../data"
 f_name = f"sub_{subject}_data.csv"
 full_path = os.path.join(dir_data, f_name)

@@ -67,13 +67,14 @@ def make_stim_cats():
     # we rotate the stimuli by 90 degress
     stimuli_rot = np.dot(stimuli - 50, np.array([[0, -1], [1, 0]])) + 50
     ds_rot = pd.DataFrame({'x': stimuli_rot[:, 0], 'y': stimuli_rot[:, 1], 'cat': labels})
-    ds_rot = ds_rot.sample(frac=1).reset_index(drop=True)
-    ds_rot['xt'] = ds_rot['x'] * 5 / 100
-    ds_rot['yt'] = (ds_rot['y'] * 90 / 100) * np.pi / 180
 
     # add condition columns
     ds['condition'] = 'relearn'
     ds_rot['condition'] = 'new_learn'
+
+    # shuffle the rows of the dataframes
+    ds = ds.sample(frac=1).reset_index(drop=True)
+    ds_rot = ds_rot.sample(frac=1).reset_index(drop=True)
 
     # Concatenate the two dataframes
     ds_combined = pd.concat([ds, ds_rot], ignore_index=True)
