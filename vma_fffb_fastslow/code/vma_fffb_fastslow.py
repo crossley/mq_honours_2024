@@ -197,7 +197,8 @@ su = np.random.choice([su_low, su_mid, su_high, su_inf], n_trial)
 # su = np.random.choice([su_inf, su_inf, su_inf, su_inf], n_trial)
 
 rotation = np.zeros(n_trial)
-rotation[n_trial // 3:2 * n_trial // 3] = 15 * np.pi / 180
+rotation[n_trial // 3:2 * n_trial //
+         3] = np.random.normal(12, 4, n_trial // 3) * (np.pi / 180)
 
 mpep_visible = np.zeros(n_trial)
 mpep_visible[:2 * n_trial // 3:] = 1
