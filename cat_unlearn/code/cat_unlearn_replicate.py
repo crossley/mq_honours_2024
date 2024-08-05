@@ -61,24 +61,24 @@ else:
     ds = pd.concat([ds_1, ds_2])
 
 # plot the stimuli coloured by label
-fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(12, 6))
-sns.scatterplot(data=ds,
-                x="x",
-                y="y",
-                hue="condition",
-                style="cat",
-                alpha=0.5,
-                ax=ax[0, 0])
-sns.scatterplot(data=ds,
-                x="xt",
-                y="yt",
-                hue="condition",
-                style="cat",
-                alpha=0.5,
-                ax=ax[0, 1])
-ax[0, 0].plot([0, 100], [0, 100], 'k--')
-ax[0, 1].plot([0, 5], [0, np.pi / 2], 'k--')
-plt.show()
+# fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(12, 6))
+# sns.scatterplot(data=ds,
+#                 x="x",
+#                 y="y",
+#                 hue="condition",
+#                 style="cat",
+#                 alpha=0.5,
+#                 ax=ax[0, 0])
+# sns.scatterplot(data=ds,
+#                 x="xt",
+#                 y="yt",
+#                 hue="condition",
+#                 style="cat",
+#                 alpha=0.5,
+#                 ax=ax[0, 1])
+# ax[0, 0].plot([0, 100], [0, 100], 'k--')
+# ax[0, 1].plot([0, 5], [0, np.pi / 2], 'k--')
+# plt.show()
 
 # plot_stim_space_examples(ds)
 
