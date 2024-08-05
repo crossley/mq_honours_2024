@@ -167,9 +167,6 @@ if use_liberty:
 # px_per_cm = np.mean([1920 / 60, 1080 / 33])
 px_per_cm = 1080 / 33
 
-# pixels_per_inch = 227 / 2
-# px_per_cm = pixels_per_inch / 2.54
-
 # set up condition-specific variables on the basis of
 # subject number
 condition_list = ["slow", "fast"]

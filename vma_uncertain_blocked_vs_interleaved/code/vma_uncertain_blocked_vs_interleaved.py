@@ -151,8 +151,10 @@ if use_liberty:
     averager = 4
 
 # useful constants but need to change / verify on each computer
-pixels_per_inch = 227 / 2
-px_per_cm = pixels_per_inch / 2.54
+# lab computer is resolution 1920 x 1080
+# monitor size is 60 cm x 33 cm
+# px_per_cm = np.mean([1920 / 60, 1080 / 33])
+px_per_cm = 1080 / 33
 
 n_trial = 430
 
@@ -326,8 +328,8 @@ else:
             screen.fill(black)
             screen.blit(text, text_rect)
 
-            pos_x = 0
-            pos_y = 0
+            pos_x = 0 + screen_width / 4
+            pos_y = 0 + screen_height / 4
             pos = (pos_x, pos_y)
             pygame.draw.circle(screen, white, pos, 15, 0)
 
@@ -346,8 +348,8 @@ else:
             screen.fill(black)
             screen.blit(text, text_rect)
 
-            pos_x = screen.get_width()
-            pos_y = 0
+            pos_x = screen.get_width() - screen_width / 4
+            pos_y = screen_height / 4
             pos = (pos_x, pos_y)
             pygame.draw.circle(screen, white, pos, 15, 0)
 
@@ -366,8 +368,8 @@ else:
             screen.fill(black)
             screen.blit(text, text_rect)
 
-            pos_x = screen.get_width()
-            pos_y = screen.get_height()
+            pos_x = screen_width - screen_width / 4
+            pos_y = screen_height - screen_height / 4
             pos = (pos_x, pos_y)
             pygame.draw.circle(screen, white, pos, 15, 0)
 
@@ -387,8 +389,8 @@ else:
             screen.fill(black)
             screen.blit(text, text_rect)
 
-            pos_x = 0
-            pos_y = screen.get_height()
+            pos_x = screen_width / 4
+            pos_y = screen_height - screen_height / 4
             pos = (pos_x, pos_y)
             pygame.draw.circle(screen, white, pos, 15, 0)
 
