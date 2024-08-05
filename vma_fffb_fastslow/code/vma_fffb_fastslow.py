@@ -197,8 +197,7 @@ su = np.random.choice([su_low, su_mid, su_high, su_inf], n_trial)
 # su = np.random.choice([su_inf, su_inf, su_inf, su_inf], n_trial)
 
 rotation = np.zeros(n_trial)
-rotation[n_trial // 3:2 * n_trial //
-         3] = np.random.normal(12, 4, n_trial // 3) * (np.pi / 180)
+rotation[n_trial // 3:2 * n_trial // 3] = 15 * np.pi / 180
 
 mpep_visible = np.zeros(n_trial)
 mpep_visible[:2 * n_trial // 3:] = 1
@@ -336,7 +335,7 @@ else:
             screen.fill(black)
             screen.blit(text, text_rect)
 
-            pos_x = 0
+            pos_x = 0 + screen_width // 4
             pos_y = 0
             pos = (pos_x, pos_y)
             pygame.draw.circle(screen, white, pos, 15, 0)
@@ -356,7 +355,7 @@ else:
             screen.fill(black)
             screen.blit(text, text_rect)
 
-            pos_x = screen.get_width()
+            pos_x = screen.get_width() - screen_width // 4
             pos_y = 0
             pos = (pos_x, pos_y)
             pygame.draw.circle(screen, white, pos, 15, 0)
@@ -376,8 +375,8 @@ else:
             screen.fill(black)
             screen.blit(text, text_rect)
 
-            pos_x = screen.get_width()
-            pos_y = screen.get_height()
+            pos_x = screen_width - screen_width // 4
+            pos_y = screen_height - screen_height // 4
             pos = (pos_x, pos_y)
             pygame.draw.circle(screen, white, pos, 15, 0)
 
@@ -397,8 +396,8 @@ else:
             screen.fill(black)
             screen.blit(text, text_rect)
 
-            pos_x = 0
-            pos_y = screen.get_height()
+            pos_x = screen_width // 4
+            pos_y = screen_height
             pos = (pos_x, pos_y)
             pygame.draw.circle(screen, white, pos, 15, 0)
 
