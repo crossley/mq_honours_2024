@@ -162,8 +162,12 @@ if use_liberty:
     averager = 4
 
 # useful constants but need to change / verify on each computer
-pixels_per_inch = 227 / 2
-px_per_cm = pixels_per_inch / 2.54
+# lab computer is resolution 1920 x 1080
+# monitor size is 60 cm x 33 cm
+pixels_per_cm = np.mean([1920 / 60, 1080 / 33])
+
+# pixels_per_inch = 227 / 2
+# px_per_cm = pixels_per_inch / 2.54
 
 # set up condition-specific variables on the basis of
 # subject number
