@@ -57,7 +57,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-subject = 999
+subject = 9999
 dir_data = "../data"
 f_name = f"sub_{subject}_data.csv"
 full_path = os.path.join(dir_data, f_name)
@@ -197,7 +197,8 @@ su = np.random.choice([su_low, su_mid, su_high, su_inf], n_trial)
 # su = np.random.choice([su_inf, su_inf, su_inf, su_inf], n_trial)
 
 rotation = np.zeros(n_trial)
-rotation[n_trial // 3:2 * n_trial // 3] = 15 * np.pi / 180
+rotation[n_trial // 3:2 * n_trial //
+         3] = np.random.normal(12, 4, n_trial // 3) * (np.pi / 180)
 
 mpep_visible = np.zeros(n_trial)
 mpep_visible[:2 * n_trial // 3:] = 1
@@ -335,8 +336,8 @@ else:
             screen.fill(black)
             screen.blit(text, text_rect)
 
-            pos_x = 0 + screen_width // 4
-            pos_y = 0
+            pos_x = 0 + screen_width / 4
+            pos_y = 0 + screen_height / 4
             pos = (pos_x, pos_y)
             pygame.draw.circle(screen, white, pos, 15, 0)
 
@@ -355,8 +356,8 @@ else:
             screen.fill(black)
             screen.blit(text, text_rect)
 
-            pos_x = screen.get_width() - screen_width // 4
-            pos_y = 0
+            pos_x = screen.get_width() - screen_width / 4
+            pos_y = screen_height / 4
             pos = (pos_x, pos_y)
             pygame.draw.circle(screen, white, pos, 15, 0)
 
@@ -375,8 +376,8 @@ else:
             screen.fill(black)
             screen.blit(text, text_rect)
 
-            pos_x = screen_width - screen_width // 4
-            pos_y = screen_height - screen_height // 4
+            pos_x = screen_width - screen_width / 4
+            pos_y = screen_height - screen_height / 4
             pos = (pos_x, pos_y)
             pygame.draw.circle(screen, white, pos, 15, 0)
 
@@ -396,8 +397,8 @@ else:
             screen.fill(black)
             screen.blit(text, text_rect)
 
-            pos_x = screen_width // 4
-            pos_y = screen_height
+            pos_x = screen_width / 4
+            pos_y = screen_height - screen_height / 4
             pos = (pos_x, pos_y)
             pygame.draw.circle(screen, white, pos, 15, 0)
 
@@ -448,8 +449,8 @@ while running:
         x = -((x - min_x) / (max_x - min_x)) + 1
         y = ((y - min_y) / (max_y - min_y)) + 0
 
-        x = x * screen_width
-        y = y * screen_height
+        x = x * screen_width / 2
+        y = y * screen_height / 2
 
         hand_pos = (x, y)
 
