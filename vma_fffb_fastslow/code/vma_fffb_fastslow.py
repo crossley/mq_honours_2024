@@ -451,11 +451,11 @@ while running:
         x = hand_pos[0]
         y = hand_pos[1]
 
-        x = -((x - min_x * 2) / 2 * (max_x - min_x)) + 1
-        y = ((y - min_y * 2) / 2 * (max_y - min_y)) + 0
+        x = -((x - min_x * 2) / (2 * (max_x - min_x))) + 1
+        y = ((y - min_y * 2) / (2 * (max_y - min_y))) + 0
 
-        x = x * screen_width / 2
-        y = y * screen_height / 2
+        x = x * screen_width
+        y = y * screen_height
 
         hand_pos = (x, y)
 
