@@ -109,13 +109,13 @@ condition = pd.DataFrame(condition_list[(subject - 1) % 4])
 ds = make_stim_cats()
 
 # plot the stimuli coloured by label
-fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(12, 6))
-sns.scatterplot(data=ds, x="x", y="y", hue="cat", alpha=0.5, ax=ax[0, 0])
-sns.scatterplot(data=ds, x="xt", y="yt", hue="cat", alpha=0.5, ax=ax[0, 1])
-ax[0, 0].plot([0, 100], [0, 100], 'k--')
-ax[0, 1].plot([0, 5], [0, np.pi / 2], 'k--')
-ax[0, 0].set_title(condition['name'][0])
-plt.show()
+# fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(12, 6))
+# sns.scatterplot(data=ds, x="x", y="y", hue="cat", alpha=0.5, ax=ax[0, 0])
+# sns.scatterplot(data=ds, x="xt", y="yt", hue="cat", alpha=0.5, ax=ax[0, 1])
+# ax[0, 0].plot([0, 100], [0, 100], 'k--')
+# ax[0, 1].plot([0, 5], [0, np.pi / 2], 'k--')
+# ax[0, 0].set_title(condition['name'][0])
+# plt.show()
 
 # plot_stim_space_examples(ds)
 
@@ -261,7 +261,7 @@ while running:
             cue_img = condition.loc[(condition["context"] == "D"),
                                     'cue_img'].values[0]
 
-        cue_img = pygame.transform.scale_by(cue_img, 0.5)
+        # cue_img = pygame.transform.scale_by(cue_img, 0.5)
 
         screen.blit(cue_img, (center_x - cue_img.get_width() / 2,
                               center_y - cue_img.get_height() / 2))

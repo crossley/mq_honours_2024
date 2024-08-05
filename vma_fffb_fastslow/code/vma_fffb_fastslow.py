@@ -164,7 +164,8 @@ if use_liberty:
 # useful constants but need to change / verify on each computer
 # lab computer is resolution 1920 x 1080
 # monitor size is 60 cm x 33 cm
-pixels_per_cm = np.mean([1920 / 60, 1080 / 33])
+# px_per_cm = np.mean([1920 / 60, 1080 / 33])
+px_per_cm = 1080 / 33
 
 # pixels_per_inch = 227 / 2
 # px_per_cm = pixels_per_inch / 2.54
@@ -450,8 +451,8 @@ while running:
         x = hand_pos[0]
         y = hand_pos[1]
 
-        x = -((x - min_x) / (max_x - min_x)) + 1
-        y = ((y - min_y) / (max_y - min_y)) + 0
+        x = -((x - min_x * 2) / 2 * (max_x - min_x)) + 1
+        y = ((y - min_y * 2) / 2 * (max_y - min_y)) + 0
 
         x = x * screen_width / 2
         y = y * screen_height / 2

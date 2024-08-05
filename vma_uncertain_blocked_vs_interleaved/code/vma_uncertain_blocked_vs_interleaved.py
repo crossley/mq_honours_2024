@@ -46,8 +46,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-subject = 1
+subject = 999
 dir_data = "../data"
+f_name = f"sub_{subject}_data.csv"
 full_path = os.path.join(dir_data, f"sub_{subject}_data.csv")
 full_path_move = os.path.join(dir_data, f"sub_{subject}_data_move.csv")
 
