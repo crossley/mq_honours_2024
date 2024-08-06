@@ -228,7 +228,7 @@ while running:
             if trial == n_trial - 1:
                 state_current = "state_finished"
             else:
-                sf = ds['xt'].iloc[trial] * px_per_cm**-1
+                sf = ds['xt'].iloc[trial] * (px_per_cm**-1)
                 ori = ds['yt'].iloc[trial]
                 cat = ds['cat'].iloc[trial]
                 resp = -1
@@ -245,21 +245,22 @@ while running:
             rt = time_state
             time_state = 0
 
+            if resp == pygame.K_d:
+                resp = "A"
+            elif resp == pygame.K_k:
+                resp = "B"
+
             # Give veridical feedback in all conditions during acquisition and reacquisition
             if (trial < 300) or (trial >= 600):
-                if resp == pygame.K_d:
-                    resp = "A"
-                    if cat == "A":
-                        fb = "Correct"
-                    else:
-                        fb = "Incorrect"
+                if cat == "A":
+                    fb = "Correct"
+                else:
+                    fb = "Incorrect"
 
-                elif resp == pygame.K_k:
-                    resp = "B"
-                    if cat == "B":
-                        fb = "Correct"
-                    else:
-                        fb = "Incorrect"
+                if cat == "B":
+                    fb = "Correct"
+                else:
+                    fb = "Incorrect"
             else:
                 # Exp 1: random feedback during intervention
                 if condition["experiment"] == 1 and condition[
@@ -274,19 +275,15 @@ while running:
                 else:
                     # give veridical feedback 25% of the time
                     if np.random.rand() < 0.25:
-                        if resp == pygame.K_d:
-                            resp = "A"
-                            if cat == "A":
-                                fb = "Correct"
-                            else:
-                                fb = "Incorrect"
+                        if cat == "A":
+                            fb = "Correct"
+                        else:
+                            fb = "Incorrect"
 
-                        elif resp == pygame.K_k:
-                            resp = "B"
-                            if cat == "B":
-                                fb = "Correct"
-                            else:
-                                fb = "Incorrect"
+                        if cat == "B":
+                            fb = "Correct"
+                        else:
+                            fb = "Incorrect"
 
                     # Give 100% random feedback the rest of the time
                     else:

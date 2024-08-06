@@ -245,7 +245,7 @@ while running:
             if trial == n_trial - 1:
                 state_current = "state_finished"
             else:
-                sf = ds['xt'].iloc[trial] * px_per_cm**-1
+                sf = ds['xt'].iloc[trial] * (px_per_cm**-1)
                 ori = ds['yt'].iloc[trial]
                 cat = ds['cat'].iloc[trial]
                 state_current = "state_cue"
