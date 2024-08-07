@@ -7,7 +7,7 @@ Exp 3: Explicit Instructions
 """
 
 # set subject number
-subject = 2
+subject = 1
 dir_data = "../data"
 f_name = f"sub_{subject}_data.csv"
 full_path = os.path.join(dir_data, f_name)
@@ -241,6 +241,7 @@ while running:
         grating_surface = grating_to_surface(grating_patch)
         screen.blit(grating_surface,
                     (center_x - size_px / 2, center_y - size_px / 2))
+
         if (resp == pygame.K_d) or (resp == pygame.K_k):
             rt = time_state
             time_state = 0
