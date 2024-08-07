@@ -175,14 +175,14 @@ condition = condition_list[(subject - 1) % 2]
 n_trial = 400
 
 if condition == "slow":
-    mt_too_slow = 3000
-    mt_too_fast = 1500
+    mt_too_slow = 3500
+    mt_too_fast = 2000
     # mt_too_slow = 50000
     # mt_too_fast = 0
 
 elif condition == "fast":
-    mt_too_slow = 1500
-    mt_too_fast = 750
+    mt_too_slow = 2000
+    mt_too_fast = 500
     # mt_too_slow = 500000
     # mt_too_fast = 0
 
