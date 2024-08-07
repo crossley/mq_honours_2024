@@ -2,16 +2,25 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-n_subs_per_cnd = 16
+n_subs_per_cnd = 20
 conditions = ['low', 'high'] * n_subs_per_cnd
 np.random.shuffle(conditions)
 
 for i in range(len(conditions)):
 
     # Specify possible target angles
-    target_angle = np.array([0, 45, 60, 75, 90, 105, 120, 135, 180, 225, 270, 315])
+    target_angle = np.array([45, 60, 75, 90, 105, 120, 135])
     target_train = target_angle[4]
     n_targets = target_angle.shape[0]
+
+#     r = 1
+#     x = r * np.cos(np.deg2rad(target_angle))
+#     y = r * np.sin(np.deg2rad(target_angle))
+# 
+#     plt.scatter(x, y)
+#     plt.scatter([0], [0], c='r')
+#     plt.show()
+
 
     # Specify the number of times you want to cycle through the targets. Note
     # that each phase can have a different set of targets to cycle between (see
@@ -291,36 +300,7 @@ for i in range(len(conditions)):
     d.loc[(d['phase'] == 'generalisation') &
           (d['target_angle'] == target_train), 'endpoint_vis'] = 1
 
-    # # NOTE: plot design
-    # nn = [
-    #     n_trial_baseline_no_fb, n_trial_baseline_continuous_fb,
-    #     n_trial_baseline_endpoint_fb, n_trial_baseline_mixed_fb, n_trial_clamp,
-    #     n_trial_generalisation, n_trial_washout_no_fb, n_trial_washout_fb
-    # ]
-    # labels = [
-    #     'baseline_no_feedback', 'baseline_continuous_fb',
-    #     'baseline_endpoint_fb', 'baseline_mixed_fb', 'clamp', 'generalisation',
-    #     'washout_no_fb', 'washout_fb'
-    # ]
-    # labels_x = np.concatenate(([0], np.cumsum(nn)[:-1]))
-    # fig, ax = plt.subplots(1, 1, squeeze=False)
-    # ax[0, 0].scatter(trial,
-    #                  rot,
-    #                  c=d['target_angle'],
-    #                  alpha=d['endpoint_vis'] * 0.5 + 0.25)
-    # ax[0, 0].vlines(labels_x, 0, rot_mean + 5, 'k', '--')
-    # for i in range(len(labels)):
-    #     ax[0, 0].text(labels_x[i], np.max(rot) + 5, labels[i], rotation=30)
-    # ax[0, 0].set_ylabel('Rotation (degrees)')
-    # ax[0, 0].set_xlabel('Trial')
-    # ax[0, 0].set_xticks(np.arange(0, n_trial + 1, 20))
-    # plt.show()
-
-    # dd = d[['condition', 'subject', 'trial', 'phase', 'cycle_phase', 'target_angle',
-    #    'cursor_vis', 'midpoint_vis', 'endpoint_vis', 'cursor_sig',
-    #    'cursor_mp_sig', 'cursor_ep_sig', 'clamp', 'rot', 'instruct_phase',
-    #    'instruct_state']]
-    # dd.plot(subplots=True, layout=(4, 4))
-    # plt.show()
-
     d.to_csv('../config/config_reach_' + str(i) + '.csv', index=False)
+
+    # d.plot(subplots=True)
+    # plt.show()
