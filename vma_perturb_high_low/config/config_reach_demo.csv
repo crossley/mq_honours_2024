@@ -1,0 +1,19 @@
+condition,subject,trial,phase,cycle_phase,target_angle,cursor_vis,midpoint_vis,endpoint_vis,cursor_sig,cursor_mp_sig,cursor_ep_sig,clamp,rot,instruct_phase,instruct_state
+demo_code,0,1,baseline_continuous_fb,1,180,1.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,"You will now only see the cursor throughout your entire reach.
+Please continue to slice through the target as quickly and accurately as possible.",1.0
+demo_code,0,2,baseline_continuous_fb,1,270,1.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,,1.0
+demo_code,0,3,baseline_continuous_fb,1,90,1.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,,1.0
+demo_code,0,4,baseline_continuous_fb,1,0,1.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,,1.0
+demo_code,0,5,baseline_endpoint_fb,1,270,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,"You will now only see the cursor only at the endpoint of your reach.
+Please continue to slice through the target as quickly and accurately as possible.",1.0
+demo_code,0,6,baseline_endpoint_fb,1,0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,,1.0
+demo_code,0,7,baseline_endpoint_fb,1,180,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,,1.0
+demo_code,0,8,baseline_endpoint_fb,1,90,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,,1.0
+demo_code,0,9,generalisation,1,270,0.0,0.0,0.0,0.0,0.0,0.0,1.0,30.365609828424834,"You will now be asked to reach to targets that you have not yet reached to.
+You will not receive feedback of any kind for these reaches.Please continue to slice through the target as quickly and accurately as possible.",1.0
+demo_code,0,10,generalisation,1,0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,28.669227133201183,,1.0
+demo_code,0,11,generalisation,1,90,0.0,0.0,1.0,0.0,0.0,0.0,1.0,33.23882222804286,,1.0
+demo_code,0,12,generalisation,1,90,0.0,0.0,1.0,0.0,0.0,0.0,1.0,23.23622943331012,,1.0
+demo_code,0,13,generalisation,1,90,0.0,0.0,1.0,0.0,0.0,0.0,1.0,28.12738785024637,,1.0
+demo_code,0,14,generalisation,1,180,0.0,0.0,0.0,0.0,0.0,0.0,1.0,33.333191718393984,,1.0
+demo_code,0,15,generalisation,1,90,0.0,0.0,1.0,0.0,0.0,0.0,1.0,33.800142198119644,,1.0
