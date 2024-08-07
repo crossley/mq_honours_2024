@@ -172,7 +172,7 @@ px_per_cm = 1080 / 33
 condition_list = ["slow", "fast"]
 condition = condition_list[(subject - 1) % 2]
 
-n_trial = 400
+n_trial = 300
 
 if condition == "slow":
     mt_too_slow = 3500
@@ -199,11 +199,11 @@ su = np.random.choice([su_low, su_mid, su_high, su_inf], n_trial)
 # su = np.random.choice([su_inf, su_inf, su_inf, su_inf], n_trial)
 
 rotation = np.zeros(n_trial)
-rotation[n_trial // 3:2 * n_trial //
-         3] = np.random.normal(12, 4, n_trial // 3) * (np.pi / 180)
+rotation[n_trial // 4:3 * n_trial //
+         4] = np.random.normal(12, 4, 2 * n_trial // 4) * (np.pi / 180)
 
 mpep_visible = np.zeros(n_trial)
-mpep_visible[:2 * n_trial // 3:] = 1
+mpep_visible[:3 * n_trial // 4] = 1
 
 fig, ax = plt.subplots(2, 1, squeeze=False, figsize=(10, 5))
 tt = np.arange(n_trial)
@@ -580,6 +580,20 @@ while running:
             state_current = "state_searching_cursor"
 
         elif t_state > 2000:
+            t_state = 0
+            t_state_2 = 0
+            state_current = "state_ready_to_move"
+
+    if state_current == "state_ready_to_move":
+        t_state += clock_state.tick()
+
+        pygame.draw.circle(screen, blue, start_pos, start_radius)
+        pygame.draw.circle(screen, red, target_pos, target_radius)
+
+        r = np.sqrt((hand_pos[0] - start_pos[0])**2 +
+                    (hand_pos[1] - start_pos[1])**2)
+
+        if r >= start_radius:
             rt = t_state
             t_state = 0
             t_state_2 = 0
