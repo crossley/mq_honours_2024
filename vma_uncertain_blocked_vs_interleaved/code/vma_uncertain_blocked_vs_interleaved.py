@@ -46,7 +46,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-subject = 999
+subject = 9999
 dir_data = "../data"
 f_name = f"sub_{subject}_data.csv"
 full_path = os.path.join(dir_data, f"sub_{subject}_data.csv")
@@ -54,8 +54,8 @@ full_path_move = os.path.join(dir_data, f"sub_{subject}_data_move.csv")
 
 # Uncomment to check if file already exists
 if os.path.exists(full_path):
-     print(f"File {f_name} already exists. Aborting.")
-     sys.exit()
+    print(f"File {f_name} already exists. Aborting.")
+    sys.exit()
 
 use_liberty = False
 
@@ -539,6 +539,21 @@ while running:
             state_current = "state_searching_cursor"
 
         elif t_state > 2000:
+            rt = t_state
+            t_state = 0
+            t_state_2 = 0
+            state_current = "state_ready_to_move"
+
+    if state_current == "state_ready_to_move":
+        t_state += clock_state.tick()
+
+        pygame.draw.circle(screen, blue, start_pos, start_radius)
+        pygame.draw.circle(screen, red, target_pos, target_radius)
+
+        r = np.sqrt((hand_pos[0] - start_pos[0])**2 +
+                    (hand_pos[1] - start_pos[1])**2)
+
+        if r >= start_radius:
             rt = t_state
             t_state = 0
             t_state_2 = 0
