@@ -18,15 +18,10 @@ if os.path.exists(full_path):
     sys.exit()
 
 experiment_1_relearn = {"experiment": 1, "condition": "relearn"}
-
 experiment_1_new_learn = {"experiment": 1, "condition": "new_learn"}
-
 experiment_2_relearn = {"experiment": 1, "condition": "relearn"}
-
 experiment_2_new_learn = {"experiment": 1, "condition": "new_learn"}
-
 experiment_3_relearn = {"experiment": 1, "condition": "relearn"}
-
 experiment_3_new_learn = {"experiment": 1, "condition": "new_learn"}
 
 condition_list = [
@@ -58,7 +53,7 @@ else:
     ds_2 = pd.concat([ds_2.loc[ind_A], ds_2.loc[ind_B]])
     ds_2 = ds_2.sample(frac=1).reset_index(drop=True)
 
-    ds = pd.concat([ds_1, ds_2])
+    ds = pd.concat([ds_1, ds_2]).reset_index(drop=True)
 
 # plot the stimuli coloured by label
 # fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(12, 6))
@@ -253,15 +248,11 @@ while running:
 
             # Give veridical feedback in all conditions during acquisition and reacquisition
             if (trial < 300) or (trial >= 600):
-                if cat == "A":
+                if cat == resp:
                     fb = "Correct"
                 else:
                     fb = "Incorrect"
 
-                if cat == "B":
-                    fb = "Correct"
-                else:
-                    fb = "Incorrect"
             else:
                 # Exp 1: random feedback during intervention
                 if condition["experiment"] == 1 and condition[
@@ -276,12 +267,7 @@ while running:
                 else:
                     # give veridical feedback 25% of the time
                     if np.random.rand() < 0.25:
-                        if cat == "A":
-                            fb = "Correct"
-                        else:
-                            fb = "Incorrect"
-
-                        if cat == "B":
+                        if cat == resp:
                             fb = "Correct"
                         else:
                             fb = "Incorrect"
@@ -312,10 +298,10 @@ while running:
             trial_data['subject'].append(subject)
             trial_data['trial'].append(trial)
             trial_data['cat'].append(cat)
-            trial_data['x'].append(np.round(ds.x[trial], 2))
-            trial_data['y'].append(np.round(ds.y[trial], 2))
-            trial_data['xt'].append(np.round(sf, 2))
-            trial_data['yt'].append(np.round(ori, 2))
+            trial_data['x'].append(ds.x[trial])
+            trial_data['y'].append(ds.y[trial])
+            trial_data['xt'].append(ds.xt[trial])
+            trial_data['yt'].append(ds.yt[trial])
             trial_data['resp'].append(resp)
             trial_data['rt'].append(rt)
             pd.DataFrame(trial_data).to_csv(full_path, index=False)

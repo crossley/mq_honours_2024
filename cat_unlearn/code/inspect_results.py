@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-d = pd.read_csv("../data/sub_5_data.csv")
+d = pd.read_csv("../data/sub_2_data.csv")
 
 d.condition.unique()
 
@@ -16,7 +16,7 @@ plt.tight_layout()
 plt.show()
 
 # add a block column that split trials up into blocks of 25
-d["block"] = np.floor(d["trial"] / 25).astype(int)
+d["block"] = np.floor(d["trial"] / 50).astype(int)
 
 # calculate accuracy for each block
 dd = d.groupby(["experiment", "condition", "subject",
