@@ -7,7 +7,7 @@ Exp 3: Explicit Instructions
 """
 
 # set subject number
-subject = 1
+subject = 6
 dir_data = "../data"
 f_name = f"sub_{subject}_data.csv"
 full_path = os.path.join(dir_data, f_name)
@@ -19,17 +19,19 @@ if os.path.exists(full_path):
 
 experiment_1_relearn = {"experiment": 1, "condition": "relearn"}
 experiment_1_new_learn = {"experiment": 1, "condition": "new_learn"}
-experiment_2_relearn = {"experiment": 1, "condition": "relearn"}
-experiment_2_new_learn = {"experiment": 1, "condition": "new_learn"}
-experiment_3_relearn = {"experiment": 1, "condition": "relearn"}
-experiment_3_new_learn = {"experiment": 1, "condition": "new_learn"}
+experiment_2_relearn = {"experiment": 2, "condition": "relearn"}
+experiment_2_new_learn = {"experiment": 2, "condition": "new_learn"}
+experiment_3_relearn = {"experiment": 3, "condition": "relearn"}
+experiment_3_new_learn = {"experiment": 3, "condition": "new_learn"}
 
 condition_list = [
     experiment_1_relearn, experiment_1_new_learn, experiment_2_relearn,
     experiment_2_new_learn, experiment_3_relearn, experiment_3_new_learn
 ]
 
-condition = condition_list[(subject - 1) % 4]
+condition = condition_list[(subject - 1) % 6]
+print((subject - 1) % 6)
+print(condition)
 
 ds = make_stim_cats()
 
