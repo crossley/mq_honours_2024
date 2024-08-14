@@ -7,7 +7,7 @@ Exp 3: Explicit Instructions
 """
 
 # set subject number
-subject = 6
+subject = 999
 dir_data = "../data"
 f_name = f"sub_{subject}_data.csv"
 full_path = os.path.join(dir_data, f_name)
@@ -257,8 +257,7 @@ while running:
 
             else:
                 # Exp 1: random feedback during intervention
-                if condition["experiment"] == 1 and condition[
-                        "condition"] == "relearn":
+                if condition["experiment"] == 1:
                     # random feedback
                     if np.random.rand() < 0.5:
                         fb = "Correct"

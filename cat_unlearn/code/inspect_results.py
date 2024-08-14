@@ -29,22 +29,54 @@ d = pd.concat(d_rec, ignore_index=True)
 dd = d.groupby(["experiment", "condition", "subject", "block",
                 "phase"])["acc"].mean().reset_index()
 
-fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(12, 5))
+fig, ax = plt.subplots(3, 2, squeeze=False, figsize=(12, 5))
 sns.lineplot(data=dd[(dd["experiment"] == 1) & (dd["condition"] == "relearn")],
              x="block",
              y="acc",
              hue="phase",
+             legend=False,
              ax=ax[0, 0])
 sns.lineplot(data=dd[(dd["experiment"] == 1)
                      & (dd["condition"] == "new_learn")],
              x="block",
              y="acc",
              hue="phase",
+             legend=False,
              ax=ax[0, 1])
-ax[0, 0].set_title("Relearn")
-ax[0, 1].set_title("New Learn")
+sns.lineplot(data=dd[(dd["experiment"] == 2) & (dd["condition"] == "relearn")],
+             x="block",
+             y="acc",
+             hue="phase",
+             legend=False,
+             ax=ax[1, 0])
+sns.lineplot(data=dd[(dd["experiment"] == 2)
+                     & (dd["condition"] == "new_learn")],
+             x="block",
+             y="acc",
+             hue="phase",
+             legend=False,
+             ax=ax[1, 1])
+sns.lineplot(data=dd[(dd["experiment"] == 3) & (dd["condition"] == "relearn")],
+             x="block",
+             y="acc",
+             hue="phase",
+             legend=False,
+             ax=ax[2, 0])
+sns.lineplot(data=dd[(dd["experiment"] == 3)
+                     & (dd["condition"] == "new_learn")],
+             x="block",
+             y="acc",
+             hue="phase",
+             legend=False,
+             ax=ax[2, 1])
+ax[0, 0].set_title("Exp 1: Relearn")
+ax[0, 1].set_title("Exp 1: New Learn")
+ax[1, 0].set_title("Exp 1: Relearn")
+ax[1, 1].set_title("Exp 1: New Learn")
+ax[2, 0].set_title("Exp 1: Relearn")
+ax[2, 1].set_title("Exp 1: New Learn")
 plt.tight_layout()
 plt.show()
 
-d.groupby(["experiment", "condition", "block",
-           "subject"])["resp"].nunique().reset_index()
+
+d.groupby(["experiment", "condition"])["subject"].unique()
