@@ -24,13 +24,15 @@ experiment_2_new_learn = {"experiment": 2, "condition": "new_learn"}
 experiment_3_relearn = {"experiment": 3, "condition": "relearn"}
 experiment_3_new_learn = {"experiment": 3, "condition": "new_learn"}
 
-condition_list = [
-    experiment_1_relearn, experiment_1_new_learn, experiment_2_relearn,
-    experiment_2_new_learn, experiment_3_relearn, experiment_3_new_learn
-]
+# condition_list = [
+#     experiment_1_relearn, experiment_1_new_learn, experiment_2_relearn,
+#     experiment_2_new_learn, experiment_3_relearn, experiment_3_new_learn
+# ]
 
-condition = condition_list[(subject - 1) % 6]
-print((subject - 1) % 6)
+condition_list = [experiment_1_relearn, experiment_1_new_learn]
+
+condition = condition_list[(subject - 1) % 2]
+print((subject - 1) % 2)
 print(condition)
 
 ds = make_stim_cats()
@@ -147,7 +149,8 @@ trial_data = {
     'xt': [],
     'yt': [],
     'resp': [],
-    'rt': []
+    'rt': [],
+    'fb': []
 }
 
 running = True
@@ -170,7 +173,7 @@ while running:
         message_instruct_2 = "This was an important part of the experiment."
         message_instruct_3 = "From now on, the feedback will again be valid."
         message_instruct_4 = "Please keep trying to categorize correctly."
-        message_instruct_5 = "Press the space bar to proceed"
+        message_instruct_5 = "Press the Y key to proceed"
         message_instruct = [
             message_instruct_1, message_instruct_2, message_instruct_3,
             message_instruct_4, message_instruct_5
@@ -185,7 +188,7 @@ while running:
                                               ii * spacing))
             screen.blit(text, text_rect)
 
-        if resp == pygame.K_SPACE:
+        if resp == pygame.K_y:
             time_state = 0
             resp = -1
             state_current = "state_iti"
@@ -305,11 +308,12 @@ while running:
             trial_data['yt'].append(ds.yt[trial])
             trial_data['resp'].append(resp)
             trial_data['rt'].append(rt)
+            trial_data['fb'].append(fb)
             pd.DataFrame(trial_data).to_csv(full_path, index=False)
             time_state = 0
 
-            # Exp 3 gets explicit instructions before reacquisition
-            if condition["experiment"] == 3 and trial == 600:
+            # transition to test gets  explicit instructions
+            if trial == 600:
                 state_current = "state_explicit_instruct"
             else:
                 state_current = "state_iti"
