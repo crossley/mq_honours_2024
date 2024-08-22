@@ -14,7 +14,7 @@ import struct
 import numpy as np
 import pandas as pd
 
-sub_num = 'demo'
+sub_num = '1'
 use_liberty = False
 
 
@@ -198,12 +198,12 @@ state_clock = core.Clock()
 mp_clock = core.Clock()
 
 while current_trial < num_trials:
-    projMatrix = win.projectionMatrix
-    viewMatrix = win.viewMatrix
-    projMatrix[1, 1] = -1
-    win.projectionMatrix = projMatrix
-    win.viewMatrix = viewMatrix
-    win.applyEyeTransform()
+    # projMatrix = win.projectionMatrix
+    # viewMatrix = win.viewMatrix
+    # projMatrix[1, 1] = -1
+    # win.projectionMatrix = projMatrix
+    # win.viewMatrix = viewMatrix
+    # win.applyEyeTransform()
 
     resp = event.getKeys(keyList=["escape"])
     rt = state_clock.getTime()

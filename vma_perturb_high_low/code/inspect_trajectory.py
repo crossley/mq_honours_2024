@@ -40,13 +40,15 @@ dp.loc[dp["phase"] == "generalisation", "cycle_phase"] += 8
 dp.loc[dp["phase"] == "washout_no_fb", "cycle_phase"] += 23
 dp.loc[dp["phase"] == "washout_fb", "cycle_phase"] += 25
 
+dp["subject"] = dp["subject"].astype("category")
+
 fig, ax = plt.subplots(1, 1, squeeze=False, figsize=(7, 4))
 sns.lineplot(
     data=dp,
     x="cycle_phase",
     y="emv",
-    hue="condition",
-    style="phase",
+    hue="phase",
+    style="subject",
     markers=True,
     legend="brief",
     ax=ax[0, 0],

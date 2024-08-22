@@ -198,6 +198,10 @@ su = np.random.choice([su_low, su_mid, su_high, su_inf], n_trial)
 # su = np.random.choice([su_high, su_high, su_high, su_high], n_trial)
 # su = np.random.choice([su_inf, su_inf, su_inf, su_inf], n_trial)
 
+# NOTE / TODO: to replicate the original paper I should have
+# set a seed so that everybody got the same psuedo random
+# sequence
+
 rotation = np.zeros(n_trial)
 rotation[n_trial // 4:3 * n_trial //
          4] = np.random.normal(12, 4, 2 * n_trial // 4) * (np.pi / 180)

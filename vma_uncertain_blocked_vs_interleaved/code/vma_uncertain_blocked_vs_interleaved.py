@@ -583,6 +583,9 @@ while running:
             cloud = np.random.multivariate_normal(
                 ep_target, [[su[trial]**2, 0], [0, su[trial]**2]], n_points)
 
+            # NOTE: Whoops. It's already been rotated so
+            # this rotates it twice. 15 degree is actually
+            # 30 degrees.
             # rotate the cloud by the rotation angle
             rot_mat = np.array(
                 [[np.cos(rotation[trial]), -np.sin(rotation[trial])],
@@ -602,7 +605,6 @@ while running:
 
         if endpoint_visible[trial]:
             for i in range(n_points):
-                # pygame.draw.circle(screen, white, cloud[i], cursor_radius)
                 pygame.draw.circle(screen, white, cloud_rot[i], cursor_radius)
 
         if t_state > 1000:
