@@ -177,14 +177,10 @@ n_trial = 300
 if condition == "slow":
     mt_too_slow = 3500
     mt_too_fast = 2000
-    # mt_too_slow = 50000
-    # mt_too_fast = 0
 
 elif condition == "fast":
     mt_too_slow = 2000
     mt_too_fast = 500
-    # mt_too_slow = 500000
-    # mt_too_fast = 0
 
 su_low = 0.01 * px_per_cm
 su_mid = 0.25 * px_per_cm
