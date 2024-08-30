@@ -26,7 +26,7 @@ def interpolate_movements(d):
         mt_too_fast = 500
 
     n = np.where((t - t[0]) <= mt_too_slow)[0][-1]
-    t = t[:n]
+    t = t[:n] - t[0]
     x = x[:n]
     y = y[:n]
     v = v[:n]
@@ -55,7 +55,6 @@ def interpolate_movements(d):
     dd["trial"] = d["trial"].unique()[0]
     dd["phase"] = d["phase"].unique()[0]
     dd["su"] = d["su"].unique()[0]
-    dd["su_prev"] = d["su_prev"].unique()[0]
     dd["imv"] = d["imv"].unique()[0]
     dd["emv"] = d["emv"].unique()[0]
 
@@ -94,20 +93,21 @@ def compute_kinematics(d):
     return d
 
 
-# TODO: give this function a better name
 def add_prev(x):
     x["su_prev"] = x["su"].shift(1)
     x["delta_emv"] = np.diff(x["emv"].to_numpy(), prepend=0)
     x["delta_imv"] = np.diff(x["imv"].to_numpy(), prepend=0)
     x["fb_int"] = x["imv"] - x["emv"]
+    x["err_mp"] = x["rotation"] - x["imv"]
+    x["err_mp_prev"] = x["err_mp"].shift(1)
+    x["err_ep"] = x["rotation"] - x["emv"]
+    x["err_ep_prev"] = x["err_ep"].shift(1)
     return x
 
 
 dir_data = "../data/"
 
 d_rec = []
-dd_rec = []
-ddd_rec = []
 
 plot_sub_trajectories = False
 
@@ -163,20 +163,6 @@ for s in range(1, 16):
         d = d.groupby(["condition", "subject", "trial"],
                       group_keys=False).apply(compute_kinematics)
 
-        d = d.groupby(["condition", "subject"],
-                      group_keys=False).apply(add_prev)
-
-        dd = d.groupby(["condition", "subject", "phase", "trial"],
-                       group_keys=False).apply(interpolate_movements)
-
-        ddd = (dd.groupby(
-            ["condition", "subject", "phase", "su_prev",
-             "relsamp"])[["t", "x", "y", "v"]].mean().reset_index())
-
-        ddd["su_prev"] = ddd["su_prev"].astype("category")
-        ddd["su_prev"] = ddd["su_prev"].cat.reorder_categories(
-            ["low", "mid", "high", "inf"], ordered=True)
-
         if plot_sub_trajectories:
 
             lbx, ubx = -150, 150
@@ -193,185 +179,216 @@ for s in range(1, 16):
                                 ax=ax[i])
                 ax[i].set_xlim(lbx, ubx)
                 ax[i].set_ylim(lby, uby)
-                ax[i].set_title("subject " +
-                                str(d.subject.unique()[0]) + " - " +
-                                d.condition.unique()[0] + " - Phase " + str(i + 1))
+                ax[i].set_title("subject " + str(d.subject.unique()[0]) +
+                                " - " + d.condition.unique()[0] + " - Phase " +
+                                str(i + 1))
                 plt.tight_layout()
-            plt.show()
-
-            fig, ax = plt.subplots(2, 2, squeeze=False)
-            ax = ax.flatten()
-            for i in range(0, 4):
-                sns.scatterplot(data=dd[dd["phase"] == i + 1],
-                                x="x",
-                                y="y",
-                                hue="trial",
-                                legend=False,
-                                ax=ax[i])
-                ax[i].set_xlim(lbx, ubx)
-                ax[i].set_ylim(lby, uby)
-                ax[i].set_title(dd.condition.unique()[0] + " - Phase " + str(i + 1))
-                plt.tight_layout()
-            plt.show()
-
-            fig, ax = plt.subplots(2, 2, squeeze=False)
-            ax = ax.flatten()
-            sns.scatterplot(data=ddd[ddd["phase"] == 1],
-                            x="x",
-                            y="y",
-                            hue="su_prev",
-                            ax=ax[0])
-            sns.scatterplot(data=ddd[ddd["phase"] == 2],
-                            x="x",
-                            y="y",
-                            hue="su_prev",
-                            ax=ax[1])
-            sns.scatterplot(data=ddd[ddd["phase"] == 3],
-                            x="x",
-                            y="y",
-                            hue="su_prev",
-                            ax=ax[2])
-            sns.scatterplot(data=ddd[ddd["phase"] == 4],
-                            x="x",
-                            y="y",
-                            hue="su_prev",
-                            ax=ax[3])
-            [x.set_xlim(-100, 100) for x in ax]
-            [x.set_ylim(-20, 320) for x in ax]
-            [x.set_title(ddd.condition.unique()) for x in ax]
-            plt.tight_layout()
             plt.show()
 
         d_rec.append(d)
-        dd_rec.append(dd)
-        ddd_rec.append(ddd)
 
 d = pd.concat(d_rec)
-dd = pd.concat(dd_rec)
-ddd = pd.concat(ddd_rec)
-
 d = d.reset_index(drop=True)
-dd = dd.reset_index(drop=True)
-ddd = ddd.reset_index(drop=True)
-
-d["su"] = d["su"].cat.reorder_categories(
-    ["low", "mid", "high", "inf"], ordered=True)
-
-d["su_prev"] = d["su_prev"].cat.reorder_categories(
-    ["low", "mid", "high", "inf"], ordered=True)
-
-ddd["su_prev"] = ddd["su_prev"].astype("category")
-ddd["su_prev"] = ddd["su_prev"].cat.reorder_categories(
-    ["low", "mid", "high", "inf"], ordered=True)
-
 d.groupby(["condition"])["subject"].unique()
 
-# NOTE: exlcude subjects with excessively variable
-# trajectories as identified by visual inspection
 exc_subs = [8]
-
 d = d[~d["subject"].isin(exc_subs)]
-dd = dd[~dd["subject"].isin(exc_subs)]
-ddd = ddd[~ddd["subject"].isin(exc_subs)]
 
-dp = d.groupby(["condition", "trial", "su_prev", "rotation"],
-               observed=True)[["imv", "emv", "delta_imv",
-                               "delta_emv"]].mean().reset_index()
+# NOTE: begin trajectory-level analysis
+dd = d.groupby(["condition", "subject", "phase", "trial", "su"],
+               group_keys=False).apply(interpolate_movements)
 
-fig, ax = plt.subplots(2, 2, squeeze=False)
-sns.lineplot(
-    data=dp[dp["condition"] == "fast"],
-    x="trial",
-    y="imv",
-    hue="su_prev",
-    markers=True,
-    ax=ax[0, 0],
-)
-sns.lineplot(
-    data=dp[dp["condition"] == "fast"],
-    x="trial",
-    y="emv",
-    hue="su_prev",
-    markers=True,
-    ax=ax[0, 1],
-)
-sns.lineplot(
-    data=dp[dp["condition"] == "slow"],
-    x="trial",
-    y="imv",
-    hue="su_prev",
-    markers=True,
-    ax=ax[1, 0],
-)
-sns.lineplot(
-    data=dp[dp["condition"] == "slow"],
-    x="trial",
-    y="emv",
-    hue="su_prev",
-    markers=True,
-    ax=ax[1, 1],
-)
-sns.lineplot(
-    data=dp[dp["condition"] == "fast"],
-    x="trial",
-    y="rotation",
-    legend=False,
-    ax=ax[0, 0],
-)
-sns.lineplot(
-    data=dp[dp["condition"] == "slow"],
-    x="trial",
-    y="rotation",
-    legend=False,
-    ax=ax[0, 1],
-)
-sns.lineplot(
-    data=dp[dp["condition"] == "fast"],
-    x="trial",
-    y="rotation",
-    legend=False,
-    ax=ax[1, 0],
-)
-sns.lineplot(
-    data=dp[dp["condition"] == "slow"],
-    x="trial",
-    y="rotation",
-    legend=False,
-    ax=ax[1, 1],
-)
-[x.set_ylim(-15, 30) for x in ax.flatten()]
-[x.set_xlabel("Trial") for x in ax.flatten()]
-plt.tight_layout()
+ddd = (dd.groupby(["condition", "phase", "su",
+                   "relsamp"])[["t", "x", "y", "v"]].mean().reset_index())
+
+fig, ax = plt.subplots(4, 2, squeeze=False)
+fig.subplots_adjust(hspace=0.6, wspace=0.4)
+for i, p in enumerate(ddd.phase.unique()):
+    sns.scatterplot(data=ddd[(ddd["phase"] == p)
+                             & (ddd["condition"] == "slow")],
+                    x="x",
+                    y="y",
+                    hue="su",
+                    ax=ax[i, 0])
+    sns.scatterplot(data=ddd[(ddd["phase"] == p)
+                             & (ddd["condition"] == "fast")],
+                    x="x",
+                    y="y",
+                    hue="su",
+                    ax=ax[i, 1])
+    ax[i, 0].set_title("Condition: Slow " + "Phase: " + str(i + 1))
+    ax[i, 1].set_title("Condition: Fast " + "Phase: " + str(i + 1))
+for i, x in enumerate(ax.flatten()):
+    x.set_xlim(-20, 20);
+    x.set_ylim(0, 200);
+    x.legend(loc="upper left", bbox_to_anchor=(0.0, 1), ncol=1)
 plt.show()
 
+fig, ax = plt.subplots(4, 2, squeeze=False)
+fig.subplots_adjust(hspace=0.6, wspace=0.4)
+for i, p in enumerate(ddd.phase.unique()):
+    sns.scatterplot(data=ddd[(ddd["phase"] == p)
+                             & (ddd["condition"] == "slow")],
+                    x="t",
+                    y="v",
+                    hue="su",
+                    ax=ax[i, 0])
+    sns.scatterplot(data=ddd[(ddd["phase"] == p)
+                             & (ddd["condition"] == "fast")],
+                    x="t",
+                    y="v",
+                    hue="su",
+                    ax=ax[i, 1])
+    ax[i, 0].set_title("Condition: Slow " + "Phase: " + str(i + 1))
+    ax[i, 1].set_title("Condition: Fast " + "Phase: " + str(i + 1))
+for i, x in enumerate(ax.flatten()):
+#    x.set_xlim(-20, 20);
+#    x.set_ylim(0, 200);
+    x.legend(loc="upper left", bbox_to_anchor=(0.0, 1), ncol=1)
+plt.show()
+
+# NOTE: Begin trial-level analysis
+dp = d[[
+    "condition", "subject", "trial", "phase", "su", "imv", "emv", "rotation"
+]].drop_duplicates()
+
+dp = dp.groupby(["condition", "subject"], group_keys=False).apply(add_prev)
+
+dp["su"] = dp["su"].cat.reorder_categories(["low", "mid", "high", "inf"],
+                                           ordered=True)
+dp["su_prev"] = dp["su_prev"].cat.reorder_categories(
+    ["low", "mid", "high", "inf"], ordered=True)
+
+dpp = dp.groupby(["condition", "trial", "phase", "su_prev"], observed=True)[[
+    "imv", "emv", "delta_imv", "err_ep", "rotation"
+]].mean().reset_index()
+
 fig, ax = plt.subplots(2, 2, squeeze=False)
-sns.barplot(
-    data=d[d["condition"] == "slow"],
-    x="su_prev",
-    y="delta_imv",
+fig.subplots_adjust(hspace=0.4, wspace=0.4)
+sns.scatterplot(
+    data=dpp[dpp["condition"] == "fast"],
+    x="trial",
+    y="imv",
+    hue="su_prev",
     ax=ax[0, 0],
 )
-sns.barplot(
-    data=d[d["condition"] == "slow"],
-    x="su",
-    y="fb_int",
+sns.scatterplot(
+    data=dpp[dpp["condition"] == "fast"],
+    x="trial",
+    y="emv",
+    hue="su_prev",
     ax=ax[0, 1],
 )
-sns.barplot(
-    data=d[d["condition"] == "fast"],
-    x="su_prev",
+sns.scatterplot(
+    data=dpp[dpp["condition"] == "slow"],
+    x="trial",
+    y="imv",
+    hue="su_prev",
+    ax=ax[1, 0],
+)
+sns.scatterplot(
+    data=dpp[dpp["condition"] == "slow"],
+    x="trial",
+    y="emv",
+    hue="su_prev",
+    ax=ax[1, 1],
+)
+[sns.lineplot(data=dpp, x="trial", y="rotation", ax=x) for x in ax.flatten()]
+[x.set_ylim(-15, 30) for x in ax.flatten()]
+[x.set_xlabel("Trial") for x in ax.flatten()]
+[x.set_ylabel("Endppoint Movement Vector") for x in [ax[0, 1], ax[1, 1]]]
+[x.set_ylabel("Initial Movement Vector") for x in [ax[0, 0], ax[1, 0]]]
+[ax[0, 0].set_title("Fast"), ax[0, 1].set_title("Fast")]
+[ax[1, 0].set_title("Slow"), ax[1, 1].set_title("Slow")]
+[
+    x.legend(loc="upper left", bbox_to_anchor=(0.0, 1), ncol=2)
+    for x in ax.flatten()
+]
+for x in ax.flatten():
+    legend = x.legend_
+    legend.set_alpha(1)
+plt.show()
+
+dpp = dp[np.isin(dp["phase"], [1, 2])].groupby(
+    ["condition", "subject", "su", "su_prev"],
+    observed=True)[["delta_imv", "fb_int", "err_mp",
+                    "err_mp_prev"]].mean().reset_index()
+
+fig, ax = plt.subplots(2, 2, squeeze=False)
+
+sns.scatterplot(
+    data=dpp[dpp["condition"] == "slow"],
+    x="err_mp_prev",
+    y="delta_imv",
+    hue="su_prev",
+    ax=ax[0, 0],
+)
+[
+    sns.regplot(data=dpp[(dpp["condition"] == "slow") & (dpp["su_prev"] == x)],
+                x="err_mp_prev",
+                y="delta_imv",
+                scatter=False,
+                ax=ax[0, 0]) for x in dpp["su_prev"].unique()
+]
+
+sns.scatterplot(
+    data=dpp[dpp["condition"] == "slow"],
+    x="err_mp",
+    y="fb_int",
+    hue="su",
+    ax=ax[0, 1],
+)
+[
+    sns.regplot(data=dpp[(dpp["condition"] == "slow") & (dpp["su"] == x)],
+                x="err_mp",
+                y="fb_int",
+                scatter=False,
+                ax=ax[0, 1]) for x in dpp["su"].unique()
+]
+
+sns.scatterplot(
+    data=dpp[dpp["condition"] == "fast"],
+    hue="su_prev",
+    x="err_mp_prev",
     y="delta_imv",
     ax=ax[1, 0],
 )
-sns.barplot(
-    data=d[d["condition"] == "fast"],
-    x="su",
+[
+    sns.regplot(data=dpp[(dpp["condition"] == "fast") & (dpp["su_prev"] == x)],
+                x="err_mp_prev",
+                y="delta_imv",
+                scatter=False,
+                ax=ax[1, 0]) for x in dpp["su_prev"].unique()
+]
+
+sns.scatterplot(
+    data=dpp[dpp["condition"] == "fast"],
+    x="err_mp",
     y="fb_int",
+    hue="su",
     ax=ax[1, 1],
 )
+[
+    sns.regplot(data=dpp[(dpp["condition"] == "fast") & (dpp["su"] == x)],
+                x="err_mp",
+                y="fb_int",
+                scatter=False,
+                ax=ax[1, 1]) for x in dpp["su"].unique()
+]
+
 ax[0, 0].set_title("Slow")
 ax[0, 1].set_title("Slow")
 ax[1, 0].set_title("Fast")
 ax[1, 1].set_title("Fast")
+
+ax[0, 0].set_xlabel("Movement Error")
+ax[0, 0].set_ylabel("Delta Initial Movement Vector")
+ax[1, 0].set_xlabel("Movement Error")
+ax[1, 0].set_ylabel("Delta Initial Movement Vector")
+ax[0, 1].set_xlabel("Movement Error")
+ax[0, 1].set_ylabel("Within-Movement Correction")
+ax[1, 1].set_xlabel("Movement Error")
+ax[1, 1].set_ylabel("Within-Movement Correction")
+
 plt.tight_layout()
 plt.show()

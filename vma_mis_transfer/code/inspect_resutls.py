@@ -247,8 +247,10 @@ dp = d.groupby(
 dp.sort_values(["condition", "session", "trial"], inplace=True)
 
 dp.loc[dp["imv"] > 160, "imv"] -= 360
+dp.loc[dp["emv"] > 160, "emv"] -= 360
 
 dp["imv"] = dp["imv"] - dp["target_angle"]
+dp["emv"] = dp["emv"] - dp["target_angle"]
 
 dp["target_angle"] = dp["target_angle"].astype("category")
 
@@ -259,7 +261,7 @@ fig, ax = plt.subplots(2, 3, squeeze=False)
 sns.scatterplot(
     data=dp[dp["session"] == 1],
     x="trial",
-    y="imv",
+    y="emv",
     hue="target_angle",
     markers=True,
     legend=False,
@@ -268,7 +270,7 @@ sns.scatterplot(
 sns.scatterplot(
     data=dp[dp["session"] == 2],
     x="trial",
-    y="imv",
+    y="emv",
     hue="target_angle",
     markers=True,
     legend=False,
@@ -286,17 +288,19 @@ ax[0, 0].set_ylim(-100, 100)
 ax[1, 0].set_ylim(-100, 100)
 ax[0, 0].set_title("Session 1")
 ax[1, 0].set_title("Session 2")
+ax[0, 0].set_ylabel("Endpoint Movement Vector")
+ax[1, 0].set_ylabel("Endpoint Movement Vector")
 
 # generalisation function
 sns.barplot(data=dp[(dp["phase"] == "generalization") & (dp["session"] == 1)],
             x="target_angle",
-            y="imv",
+            y="emv",
             hue="target_angle",
             legend=False,
             ax=ax[0, 1])
 sns.barplot(data=dp[(dp["phase"] == "generalization") & (dp["session"] == 2)],
             x="target_angle",
-            y="imv",
+            y="emv",
             hue="target_angle",
             legend=False,
             ax=ax[1, 1])
@@ -305,17 +309,25 @@ ax[1, 1].set_ylim(-150, 150)
 for ax_ in [ax[0, 1], ax[1, 1]]:
     for label in ax_.get_xticklabels():
         label.set_rotation(45)
+ax[0, 1].set_xlabel("Target Angle")
+ax[1, 1].set_xlabel("Target Angle")
+ax[0, 1].set_ylabel("Endpoint Movement Vector")
+ax[1, 1].set_ylabel("Endpoint Movement Vector")
 
 # generalisation trajectories
 dpp = ddd[ddd["phase"] == "generalization"].groupby(
     ["condition", "session", "phase", "target_angle",
      "relsamp"])[["x", "y"]].mean().reset_index()
+dpp["training_target"] = False
+dpp.loc[dpp["target_angle"] == 0, "training_target"] = True
 dpp["target_angle"] = dpp["target_angle"].astype("category")
+dpp["training_target"] = dpp["training_target"].astype("category")
 sns.scatterplot(
     data=dpp[dpp["session"] == 1],
     x="x",
     y="y",
     hue="target_angle",
+    style="training_target",
     markers=True,
     ax=ax[0, 2],
 )
@@ -324,6 +336,7 @@ sns.scatterplot(
     x="x",
     y="y",
     hue="target_angle",
+    style="training_target",
     markers=True,
     ax=ax[1, 2],
 )

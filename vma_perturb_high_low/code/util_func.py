@@ -3,7 +3,7 @@ from imports import *
 
 def load_all_data():
     d_list = []
-    for sub_num in np.arange(3, 5, 1):
+    for sub_num in np.arange(0, 5, 1):
         if sub_num % 2 == 0:
             condition = 1
         else:
@@ -62,20 +62,27 @@ def compute_kinematics(d):
     x = d["x"].to_numpy()
     y = d["y"].to_numpy()
 
+    x = x - x[0]
+    y = y - y[0]
+    y = -y
+
+    r = np.sqrt(x**2 + y**2)
+    theta = (np.arctan2(y, x)) * 180 / np.pi
+
     vx = np.gradient(x, t)
     vy = np.gradient(y, t)
     v = np.sqrt(vx**2 + vy**2)
-    d["v"] = v
 
     v_peak = v.max()
-    ts = t[v > (0.05 * v_peak)][0]
-
-    radius = np.sqrt(x**2 + y**2)
-    theta = np.arctan2(y, x) * 180 / np.pi
+    # ts = t[v > (0.05 * v_peak)][0]
+    ts = t[r > 0.1 * r.max()][0]
 
     imv = theta[(t >= ts) & (t <= ts + 0.1)].mean()
     emv = theta[-1]
 
+    d["x"] = x
+    d["y"] = y
+    d["v"] = v
     d["imv"] = imv
     d["emv"] = emv
 

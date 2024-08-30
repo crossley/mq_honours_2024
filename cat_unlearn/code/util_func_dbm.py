@@ -47,12 +47,11 @@ def fit_dbm(d, model_func, side, k, n, model_name):
 
     cnd = d["condition"]
     sub = d["subject"]
-    cue = d["sub_task"]
 
     drec = []
     for m, mod in enumerate(model_func):
-        dd = d[(d["subject"] == sub) & (d["condition"] == cnd) &
-               (d["sub_task"] == cue)][["cat", "x", "y", "resp"]]
+        dd = d[(d["subject"] == sub)
+               & (d["condition"] == cnd)][["cat", "x", "y", "resp"]]
 
         cat = dd.cat.to_numpy()
         x = dd.x.to_numpy()
@@ -119,17 +118,17 @@ def fit_dbm(d, model_func, side, k, n, model_name):
         a2 = np.sqrt(1 - a1**2)
         b = results['x'][1]
 
-        print(d[["condition", "subject", "sub_task"]].iloc[0])
+        print(d[["condition", "subject"]].iloc[0])
         print(model_name[m], results["x"], results["fun"])
         print(a1, a2, b)
         print(np.unique(resp))
 
-#        fig, ax = plt.subplots(1, 1, squeeze=False)
-#        ax[0, 0].scatter(x, y, c=resp)
-#        ax[0, 0].plot([0, 100], [-b / a2, -(100 * a1 + b) / a2], '--k')
-#        ax[0, 0].set_xlim(-5, 105)
-#        ax[0, 0].set_ylim(-5, 105)
-#        plt.show()
+        #        fig, ax = plt.subplots(1, 1, squeeze=False)
+        #        ax[0, 0].scatter(x, y, c=resp)
+        #        ax[0, 0].plot([0, 100], [-b / a2, -(100 * a1 + b) / a2], '--k')
+        #        ax[0, 0].set_xlim(-5, 105)
+        #        ax[0, 0].set_ylim(-5, 105)
+        #        plt.show()
 
         tmp = pd.DataFrame(results["x"])
         tmp.columns = ["p"]

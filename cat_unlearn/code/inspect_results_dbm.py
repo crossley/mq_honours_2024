@@ -16,37 +16,33 @@ if __name__ == "__main__":
 
     d_rec = []
 
-    for f in os.listdir(dir_data):
-        if f.endswith(".csv"):
-            d = pd.read_csv(os.path.join(dir_data, f))
+    for file in os.listdir(dir_data):
+
+        if file.endswith(".csv"):
+            d = pd.read_csv(os.path.join(dir_data, file))
+            d["block"] = np.floor(d["trial"] / 25).astype(int)
+            d["acc"] = d["cat"] == d["resp"]
+            d["phase"] = ["Learn"] * 300 + ["Intervention"] * 300 + ["Test"
+                                                                     ] * 299
             d_rec.append(d)
 
-    d = pd.concat(d_rec)
+    d = pd.concat(d_rec, ignore_index=True)
 
-    print(d.groupby(["condition"])["subject"].unique())
-    print(d.groupby(["condition"])["subject"].nunique())
+    # NOTE: Fix bug in code for first 18 ppts
+    d.loc[(d["condition"] == "new_learn") & (d["subject"] <= 18),
+          "experiment"] = 2
 
-    d["acc"] = d["cat"] == d["resp"]
-
-    d.loc[d["cat"] == 107, "cat"] = 0
-    d.loc[d["cat"] == 115, "cat"] = 1
-    d.loc[d["cat"] == 97, "cat"] = 0
-    d.loc[d["cat"] == 108, "cat"] = 1
-    d.loc[d["resp"] == 107, "resp"] = 0
-    d.loc[d["resp"] == 115, "resp"] = 1
-    d.loc[d["resp"] == 97, "resp"] = 0
-    d.loc[d["resp"] == 108, "resp"] = 1
+    d.loc[d["cat"] == "A", "cat"] = 0
+    d.loc[d["cat"] == "B", "cat"] = 1
+    d.loc[d["resp"] == "A", "resp"] = 0
+    d.loc[d["resp"] == "B", "resp"] = 1
+    d["cat"] = d["cat"].astype(int)
+    d["resp"] = d["resp"].astype(int)
 
     block_size = 100
     d["block"] = d.groupby(["condition", "subject"]).cumcount() // block_size
 
     d = d.sort_values(["condition", "subject", "block", "trial"])
-
-    # TODO: test with one or two subjects
-    # d = d.loc[d["subject"].isin([24, 52])]
-
-    # NOTE: only look at final block
-    d = d.loc[d["block"] == 3]
 
     models = [
         nll_unix,
@@ -84,7 +80,7 @@ if __name__ == "__main__":
         return x
 
     if not os.path.exists("../dbm_fits/dbm_results.csv"):
-        dbm = (d.groupby(["condition", "subject", "sub_task",
+        dbm = (d.groupby(["condition", "subject",
                           "block"]).apply(fit_dbm, models, side, k, n,
                                           model_names).reset_index())
 
@@ -93,12 +89,12 @@ if __name__ == "__main__":
     else:
         dbm = pd.read_csv("../dbm_fits/dbm_results.csv")
 
-    dbm = dbm.groupby(["condition", "subject", "sub_task",
+    dbm = dbm.groupby(["condition", "subject",
                        "block"]).apply(assign_best_model)
 
     dd = dbm.loc[dbm["model"] == dbm["best_model"]]
 
-    ddd = dd[["condition", "subject", "sub_task", "block",
+    ddd = dd[["condition", "subject", "block",
               "best_model"]].drop_duplicates()
     ddd["best_model_class"] = ddd["best_model"].str.split("_").str[1]
     ddd.loc[ddd["best_model_class"] != "glc",
@@ -106,7 +102,6 @@ if __name__ == "__main__":
     ddd.loc[ddd["best_model_class"] == "glc",
             "best_model_class"] = "procedural"
     ddd["best_model_class"] = ddd["best_model_class"].astype("category")
-    ddd["sub_task"] = ddd["sub_task"].astype("category")
     ddd = ddd.reset_index(drop=True)
 
     def get_best_model_class_2(x):
