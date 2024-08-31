@@ -155,11 +155,16 @@ def add_prev(x):
 dp = d[["condition", "subject", "trial", "phase", "su", "emv",
         "rotation"]].drop_duplicates()
 
+dp = dp.sort_values(["condition", "subject", "trial"])
+
 dp = dp.groupby(["condition", "subject"], group_keys=False).apply(add_prev)
 
 dpp = dp.groupby(["condition", "trial", "phase", "su_prev", "rotation"],
                  observed=True)[["emv", "delta_emv",
                                  "movement_error"]].mean().reset_index()
+
+dp.to_csv("../data_summary/summary_per_trial_per_subject.csv")
+dpp.to_csv("../data_summary/summary_per_trial.csv")
 
 fig, ax = plt.subplots(3, 2, squeeze=False)
 
