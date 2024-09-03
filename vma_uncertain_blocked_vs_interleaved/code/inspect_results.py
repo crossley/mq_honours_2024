@@ -72,7 +72,7 @@ dir_data = "../data/"
 
 d_rec = []
 
-for s in range(13, 31):
+for s in range(13, 37):
 
     f_trl = "sub_{}_data.csv".format(s)
     f_mv = "sub_{}_data_move.csv".format(s)
@@ -116,6 +116,7 @@ for s in range(13, 31):
 d = pd.concat(d_rec)
 
 d.groupby(["condition"])["subject"].unique()
+d.groupby(["condition"])["subject"].nunique()
 
 d.sort_values(["condition", "subject", "trial", "t"], inplace=True)
 
@@ -126,15 +127,16 @@ d.sort_values(["condition", "subject", "trial", "t"], inplace=True)
 #     plt.show()
 
 # high low
-# 13, 15, 17, 25
+# 13, 15, 17, 25, 31, 35
 
 # low high
-# 19, 21, 23, 27, 29
+# 19, 21, 23, 27, 29, 33, 37
 
-d.loc[(d["condition"] == "blocked") & np.isin(d["subject"], [13, 15, 17, 25]),
+d.loc[(d["condition"] == "blocked")
+      & np.isin(d["subject"], [13, 15, 17, 25, 31, 35]),
       "condition"] = "Blocked - High low"
 d.loc[(d["condition"] == "blocked")
-      & np.isin(d["subject"], [19, 21, 23, 27, 29]),
+      & np.isin(d["subject"], [19, 21, 23, 27, 29, 33, 37]),
       "condition"] = "Blocked - Low High"
 
 d.groupby(["condition"])["subject"].unique()
@@ -166,8 +168,7 @@ dpp = dp.groupby(["condition", "trial", "phase", "su_prev", "rotation"],
 dp.to_csv("../data_summary/summary_per_trial_per_subject.csv")
 dpp.to_csv("../data_summary/summary_per_trial.csv")
 
-fig, ax = plt.subplots(3, 2, squeeze=False)
-
+fig, ax = plt.subplots(2, 2, squeeze=False)
 # emv
 sns.scatterplot(
     data=dpp[dpp["condition"] != "interleaved"],
@@ -188,33 +189,9 @@ sns.scatterplot(
     legend="full",
     ax=ax[0, 1],
 )
-[x.set_ylim(-10, 50) for x in ax.flatten()]
-[x.set_xlabel("Trial") for x in ax.flatten()]
-[x.set_ylabel("Endppoint Movement Vector") for x in ax.flatten()]
-# delta emv
-sns.scatterplot(
-    data=dpp[dpp["condition"] != "interleaved"],
-    x="trial",
-    y="delta_emv",
-    style="condition",
-    hue="su_prev",
-    markers=True,
-    legend=False,
-    ax=ax[1, 0],
-)
-sns.scatterplot(
-    data=dpp[dpp["condition"] == "interleaved"],
-    x="trial",
-    y="delta_emv",
-    hue="su_prev",
-    markers=True,
-    legend=False,
-    ax=ax[1, 1],
-)
-[x.set_xlabel("Trial") for x in ax.flatten()]
-[x.set_ylabel("Delta Endppoint Movement Vector") for x in ax.flatten()]
-
-# add rotation to the above axes
+[x.set_ylim(-10, 50) for x in [ax[0, 0], ax[0, 1]]]
+[x.set_xlabel("Trial") for x in [ax[0, 0], ax[0, 1]]]
+[x.set_ylabel("Endppoint Movement Vector") for x in [ax[0, 0], ax[0, 1]]]
 [
     sns.lineplot(
         data=dpp[dpp["condition"] != "interleaved"],
@@ -224,24 +201,25 @@ sns.scatterplot(
         palette=['k'],
         legend=False,
         ax=ax_,
-    ) for ax_ in ax.flatten()[:4]
+    ) for ax_ in [ax[0, 0], ax[0, 1]]
 ]
-
 # add scatter plot of delta emv vs movement error colour
 # coded by su_prev with reg lines
-sns.scatterplot(data=dpp[(dpp["condition"] != "interleaved") & (dpp["phase"] == 2)],
+sns.scatterplot(data=dpp[(dpp["condition"] != "interleaved")
+                         & (dpp["phase"] == 2)],
                 y="delta_emv",
                 x="movement_error",
                 hue="su_prev",
                 style="condition",
                 legend=False,
-                ax=ax[2, 0])
-sns.scatterplot(data=dpp[(dpp["condition"] == "interleaved") & (dpp["phase"] == 2)],
+                ax=ax[1, 0])
+sns.scatterplot(data=dpp[(dpp["condition"] == "interleaved")
+                         & (dpp["phase"] == 2)],
                 y="delta_emv",
                 x="movement_error",
                 hue="su_prev",
                 legend=False,
-                ax=ax[2, 1])
+                ax=ax[1, 1])
 sns.regplot(data=dpp[(dpp["condition"] != "interleaved")
                      & (dpp["su_prev"] == dpp["su_prev"].unique()[0]) &
                      (dpp["phase"] == 2)],
@@ -249,7 +227,7 @@ sns.regplot(data=dpp[(dpp["condition"] != "interleaved")
             y="movement_error",
             scatter=False,
             robust=True,
-            ax=ax[2, 0])
+            ax=ax[1, 0])
 sns.regplot(data=dpp[(dpp["condition"] != "interleaved")
                      & (dpp["su_prev"] == dpp["su_prev"].unique()[1]) &
                      (dpp["phase"] == 2)],
@@ -257,7 +235,7 @@ sns.regplot(data=dpp[(dpp["condition"] != "interleaved")
             x="movement_error",
             scatter=False,
             robust=True,
-            ax=ax[2, 0])
+            ax=ax[1, 0])
 sns.regplot(data=dpp[(dpp["condition"] == "interleaved")
                      & (dpp["su_prev"] == dpp["su_prev"].unique()[0]) &
                      (dpp["phase"] == 2)],
@@ -265,7 +243,7 @@ sns.regplot(data=dpp[(dpp["condition"] == "interleaved")
             y="movement_error",
             scatter=False,
             robust=True,
-            ax=ax[2, 1])
+            ax=ax[1, 1])
 sns.regplot(data=dpp[(dpp["condition"] == "interleaved")
                      & (dpp["su_prev"] == dpp["su_prev"].unique()[1]) &
                      (dpp["phase"] == 2)],
@@ -274,83 +252,70 @@ sns.regplot(data=dpp[(dpp["condition"] == "interleaved")
             scatter=False,
             robust=True,
             ax=ax[2, 1])
-[x.set_xlabel("Delta Endppoint Movement Vector") for x in ax.flatten()]
-[x.set_ylabel("Movement Error") for x in ax.flatten()]
-ax[0, 0].legend(loc="upper left", bbox_to_anchor=(0.0, 1.4), ncol=2)
-ax[0, 1].legend(loc="upper left", bbox_to_anchor=(0.0, 1.4), ncol=2)
+ax[2, 0].set_xlim(-50, 50)
+ax[2, 0].set_ylim(-50, 50)
+ax[2, 1].set_xlim(-50, 50)
+ax[2, 1].set_ylim(-50, 50)
+[x.set_xlabel("Delta Endppoint Movement Vector") for x in [ax[1, 0], ax[1, 1]]]
+[x.set_ylabel("Movement Error") for x in [ax[1, 0], ax[1, 1]]]
+ax[0, 0].legend(loc="upper left", bbox_to_anchor=(0.0, 1.2), ncol=2)
+ax[0, 1].legend(loc="upper left", bbox_to_anchor=(0.0, 1.2), ncol=2)
 plt.show()
 
-d.to_csv("../data_summary/summary.csv")
+# NOTE: statsmodels
+import pingouin as pg
+import statsmodels.formula.api as smf
+import statsmodels.api as sm
+import patsy
+from patsy.contrasts import Diff, Treatment
 
-# # NOTE: inspect trajectories
-# fig, ax = plt.subplots(3, 3, squeeze=False)
-# ax = ax.flatten()
-# sns.scatterplot(data=d[d["phase"] == 1],
-#                 x="x",
-#                 y="y",
-#                 hue="trial",
-#                 legend=False,
-#                 ax=ax[0])
-# sns.scatterplot(data=d[d["phase"] == 2],
-#                 x="x",
-#                 y="y",
-#                 hue="trial",
-#                 legend=False,
-#                 ax=ax[1])
-# sns.scatterplot(data=d[d["phase"] == 3],
-#                 x="x",
-#                 y="y",
-#                 hue="trial",
-#                 legend=False,
-#                 ax=ax[2])
-# sns.scatterplot(data=d[d["phase"] == 4],
-#                 x="x",
-#                 y="y",
-#                 hue="trial",
-#                 legend=False,
-#                 ax=ax[3])
-# sns.scatterplot(data=d[d["phase"] == 5],
-#                 x="x",
-#                 y="y",
-#                 hue="trial",
-#                 legend=False,
-#                 ax=ax[4])
-# sns.scatterplot(data=d[d["phase"] == 6],
-#                 x="x",
-#                 y="y",
-#                 hue="trial",
-#                 legend=False,
-#                 ax=ax[5])
-# sns.scatterplot(data=d[d["phase"] == 7],
-#                 x="x",
-#                 y="y",
-#                 hue="trial",
-#                 legend=False,
-#                 ax=ax[6])
-# theta = (90 - 30) * np.pi / 180
-# [x.axline((0, 0), (np.cos(theta), np.sin(theta)), color="red") for x in ax]
-# [
-#     x.set_title(f"emv: {d[d['phase'] == i+1]['emv'].mean():.2f}")
-#     for i, x in enumerate(ax)
-# ]
-# [x.set_xlim(-200, 200) for x in ax]
-# [x.set_ylim(-200, 200) for x in ax]
-# plt.tight_layout()
-# plt.show()
+mod_formula = "emv ~ "
+mod_formula += "C(su_prev, Diff) * movement_error + "
+mod_formula += "np.log(trial) + "
+mod_formula += "1"
 
-# dd = d.groupby(["condition", "subject", "phase", "trial"],
-#                group_keys=False).apply(interpolate_movements)
+# NOTE: blocked
+dppp = dpp[(dpp["condition"] != "interleaved") & (dpp["phase"] == 2)].copy()
 
-# fig, ax = plt.subplots(3, 1, squeeze=False)
-# sns.scatterplot(data=dd, x="x", y="y", hue="su", ax=ax[0, 0])
-# sns.scatterplot(data=dd, x="trial", y="imv", hue="su", ax=ax[1, 0])
-# sns.scatterplot(data=dd, x="trial", y="emv", hue="su", ax=ax[2, 0])
-# plt.tight_layout()
-# plt.show()
+mod = smf.ols(mod_formula, data=dppp)
+res_sm = mod.fit()
 
-# ddd = (dd.groupby(["condition", "subject", "phase", "su",
-#                    "relsamp"])[["t", "x", "y", "v"]].mean().reset_index())
+dppp["emv_pred"] = res_sm.model.predict(res_sm.params, res_sm.model.exog)
 
-# fig, ax = plt.subplots(1, 1, squeeze=False)
-# sns.scatterplot(data=ddd, x="x", y="y", hue="su", style="phase", ax=ax[0, 0])
-# plt.show()
+fig, ax = plt.subplots(2, 1, squeeze=False)
+sns.scatterplot(data=dppp,
+                x="trial",
+                y="emv",
+                hue="su_prev",
+                style="condition",
+                ax=ax[0, 0])
+sns.scatterplot(data=dppp,
+                x="trial",
+                y="emv_pred",
+                hue="su_prev",
+                style="condition",
+                ax=ax[1, 0])
+plt.show()
+
+# NOTE: interleaved
+dppp = dpp[(dpp["condition"] == "interleaved") & (dpp["phase"] == 2)].copy()
+
+mod = smf.ols(mod_formula, data=dppp)
+res_sm = mod.fit()
+
+dppp["emv_pred"] = res_sm.model.predict(res_sm.params, res_sm.model.exog)
+
+fig, ax = plt.subplots(2, 1, squeeze=False)
+sns.scatterplot(data=dppp,
+                x="trial",
+                y="emv",
+                hue="su_prev",
+                style="condition",
+                ax=ax[0, 0])
+sns.scatterplot(data=dppp,
+                x="trial",
+                y="emv_pred",
+                hue="su_prev",
+                style="condition",
+                ax=ax[1, 0])
+plt.show()
