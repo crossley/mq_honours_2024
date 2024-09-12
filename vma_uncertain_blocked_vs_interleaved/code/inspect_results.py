@@ -383,11 +383,11 @@ d.loc[np.isin(d["trial"], [231, 232, 233]), "phase_2"] = "rot_2"
 
 d.loc[d["condition"].str.contains("Blocked"), "condition"] = "blocked"
 
-d = d[["condition", "subject", "phase_2", "su_prev", "emv"]].copy()
+d = d[["condition", "subject", "phase_2", "su_prev", "emv", "delta_emv"]].copy()
 d = d[d["phase_2"] != "None"]
 
 dd = d.groupby(["condition", "subject", "phase_2", "su_prev"],
-               observed=True)["emv"].mean().reset_index()
+               observed=True)[["emv", "delta_emv"]].mean().reset_index()
 
 dd["su_prev"] = dd["su_prev"].astype("category")
 dd["condition"] = dd["condition"].astype("category")
@@ -415,4 +415,26 @@ ax[0, 0].set_title("blocked")
 ax[0, 1].set_title("interleaved")
 sns.move_legend(ax[0, 0], loc="upper left", bbox_to_anchor=(0.0, 1.0))
 sns.move_legend(ax[0, 1], loc="upper left", bbox_to_anchor=(0.0, 1.0))
-plt.savefig("../figures/summary_anova.png")
+plt.savefig("../figures/summary_anova_emv.png")
+
+fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(12, 4))
+fig.subplots_adjust(wspace=0.3, hspace=0.3)
+sns.pointplot(data=dd[dd["condition"] == "blocked"],
+              x="phase_2",
+              y="delta_emv",
+              hue="su_prev",
+              errorbar="se",
+              legend="full",
+              ax=ax[0, 0])
+sns.pointplot(data=dd[dd["condition"] == "interleaved"],
+              x="phase_2",
+              y="delta_emv",
+              hue="su_prev",
+              errorbar="se",
+              legend="full",
+              ax=ax[0, 1])
+ax[0, 0].set_title("blocked")
+ax[0, 1].set_title("interleaved")
+sns.move_legend(ax[0, 0], loc="upper left", bbox_to_anchor=(0.0, 1.0))
+sns.move_legend(ax[0, 1], loc="upper left", bbox_to_anchor=(0.0, 1.0))
+plt.savefig("../figures/summary_anova_delta_emv.png")
