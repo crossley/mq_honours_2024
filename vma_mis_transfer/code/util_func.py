@@ -11,25 +11,46 @@ def compute_kinematics(d):
     y = y - y[0]
     y = -y
 
-    r = np.sqrt(x**2 + y**2)
-    theta = (np.arctan2(y, x)) * 180 / np.pi
-
     vx = np.gradient(x, t)
     vy = np.gradient(y, t)
     v = np.sqrt(vx**2 + vy**2)
+
+    r = np.sqrt(x**2 + y**2)
 
     v_peak = v.max()
     # ts = t[v > (0.05 * v_peak)][0]
     ts = t[r > 0.1 * r.max()][0]
 
-    imv = theta[(t >= ts) & (t <= ts + 0.1)].mean()
-    emv = theta[-1]
+    # xx = x[(t >= ts) & (t <= ts + 0.1)].mean()
+    # yy = y[(t >= ts) & (t <= ts + 0.1)].mean()
+
+    xx = x[-1]
+    yy = y[-1]
+
+    theta = (np.arctan(yy / xx)) * 180 / np.pi
+
+    if (xx > 0) & (yy > 0):
+        theta = -theta + 90
+
+    elif (xx > 0) & (yy < 0):
+        theta = -(theta - 90)
+
+    elif (xx < 0) & (yy > 0):
+        theta = -theta - 90
+
+    elif (xx < 0) & (yy < 0):
+        theta = -theta - 90
+
+    # TODO: currently ignoring imv
+    # imv = theta[(t >= ts) & (t <= ts + 0.1)].mean()
+    imv = theta
+    emv = theta
 
     d["x"] = x
     d["y"] = y
     d["v"] = v
-    d["imv"] = 90 - imv
-    d["emv"] = 90 - emv
+    d["imv"] = imv
+    d["emv"] = emv
 
     return d
 
@@ -187,6 +208,9 @@ def load_data():
         f_trl_3 = "sub_{}{}{}_data.csv".format(s, s, s)
         f_mv_3 = "sub_{}{}{}_data_move.csv".format(s, s, s)
 
+        f_trl_4 = "sub_{}{}{}{}_data.csv".format(s, s, s, s)
+        f_mv_4 = "sub_{}{}{}{}_data_move.csv".format(s, s, s, s)
+
         d_trl_1 = pd.read_csv(os.path.join(dir_data, f_trl_1))
         d_mv_1 = pd.read_csv(os.path.join(dir_data, f_mv_1))
 
@@ -195,6 +219,9 @@ def load_data():
 
         d_trl_3 = pd.read_csv(os.path.join(dir_data, f_trl_3))
         d_mv_3 = pd.read_csv(os.path.join(dir_data, f_mv_3))
+
+        d_trl_4 = pd.read_csv(os.path.join(dir_data, f_trl_4))
+        d_mv_4 = pd.read_csv(os.path.join(dir_data, f_mv_4))
 
         d_trl_1["session"] = 1
         d_mv_1["session"] = 1
@@ -205,14 +232,20 @@ def load_data():
         d_trl_3["session"] = 3
         d_mv_3["session"] = 3
 
+        d_trl_4["session"] = 4
+        d_mv_4["session"] = 4
+
         d_trl_2["subject"] = d_trl_1["subject"].unique()[0]
         d_mv_2["subject"] = d_mv_1["subject"].unique()[0]
 
         d_trl_3["subject"] = d_trl_1["subject"].unique()[0]
         d_mv_3["subject"] = d_mv_1["subject"].unique()[0]
 
-        d_trl = pd.concat([d_trl_1, d_trl_2, d_trl_3])
-        d_mv = pd.concat([d_mv_1, d_mv_2, d_mv_3])
+        d_trl_4["subject"] = d_trl_1["subject"].unique()[0]
+        d_mv_4["subject"] = d_mv_1["subject"].unique()[0]
+
+        d_trl = pd.concat([d_trl_1, d_trl_2, d_trl_3, d_trl_4])
+        d_mv = pd.concat([d_mv_1, d_mv_2, d_mv_3, d_mv_4])
 
         d_trl = d_trl.sort_values(["condition", "subject", "session", "trial"])
         d_mv = d_mv.sort_values(
@@ -223,8 +256,7 @@ def load_data():
 
         d_mv = d_mv[d_mv["state"].isin(["state_moving"])]
 
-        # TODO: this needs to reflect the actual number of sessions
-        phase = np.empty(d_trl.shape[0] // 3, dtype="object")
+        phase = np.empty(d_trl.shape[0] // 4, dtype="object")
 
         # The experiment began with a familiarization phase of 33
         # reach trials (3 trials per target in pseudorandom order)
@@ -255,8 +287,7 @@ def load_data():
         # in pseudorandom order without visual feedback.
         phase[341:] = "generalization"
 
-        # TODO: this needs to reflect the actual number of sessions
-        phase = np.concatenate([phase, phase, phase])
+        phase = np.concatenate([phase, phase, phase, phase])
 
         d_trl["phase"] = phase
 
@@ -282,54 +313,6 @@ def load_data():
             "condition", "subject", "session", "phase", "target_angle",
             "relsamp"
         ])[["t", "x", "y", "v"]].mean().reset_index())
-
-        # lbx, ubx = -200, 200
-        # lby, uby = -200, 200
-
-        # fig, ax = plt.subplots(2, 2, squeeze=False)
-        # ax = ax.flatten()
-        # for i, p in enumerate(d.phase.unique()):
-        #     sns.scatterplot(data=d[d["phase"] == p],
-        #                     x="x",
-        #                     y="y",
-        #                     hue="trial",
-        #                     legend=False,
-        #                     ax=ax[i])
-        #     ax[i].set_xlim(lbx, ubx)
-        #     ax[i].set_ylim(lby, uby)
-        #     ax[i].set_title("Phase: " + p)
-        #     plt.tight_layout()
-        # plt.show()
-
-        # fig, ax = plt.subplots(2, 2, squeeze=False)
-        # ax = ax.flatten()
-        # for i, p in enumerate(dd.phase.unique()):
-        #     sns.scatterplot(data=dd[dd["phase"] == p],
-        #                     x="x",
-        #                     y="y",
-        #                     hue="trial",
-        #                     legend=False,
-        #                     ax=ax[i])
-        #     ax[i].set_xlim(lbx, ubx)
-        #     ax[i].set_ylim(lby, uby)
-        #     ax[i].set_title("Phase: " + p)
-        #     plt.tight_layout()
-        # plt.show()
-
-        # fig, ax = plt.subplots(2, 2, squeeze=False)
-        # ax = ax.flatten()
-        # for i, p in enumerate(ddd.phase.unique()):
-        #     sns.scatterplot(data=ddd[ddd["phase"] == p],
-        #                     x="x",
-        #                     y="y",
-        #                     hue="target_angle",
-        #                     legend=True,
-        #                     ax=ax[i])
-        #     ax[i].set_xlim(lbx, ubx)
-        #     ax[i].set_ylim(lby, uby)
-        #     ax[i].set_title("Phase: " + p)
-        #     plt.tight_layout()
-        # plt.show()
 
         d_rec.append(d)
         dd_rec.append(dd)
@@ -587,7 +570,7 @@ def inspect_results_boot():
         ]
 
         d_boot = pd.read_csv('../fits/fit_session_' + str(s) + '_boot.txt',
-                        names=names)
+                             names=names)
 
         d_boot = d_boot[[
             'alpha_s', 'alpha_f', 'beta_s', 'beta_f', 'g_s', 'g_f', 'beta_s_2',
@@ -615,18 +598,15 @@ def inspect_results_boot():
 
         c = ['C0', 'C1', 'C2', 'C3']
         x = np.array([0, 1, 2, 3, 4, 5, 6, 7]) * 2
-        ax.violinplot(d_boot.values,
-                      positions=x - 0.5*i,
-                      showextrema=False
-                      )
+        ax.violinplot(d_boot.values, positions=x - 0.5 * i, showextrema=False)
         ax.boxplot(d_boot.values,
-                   positions=x - 0.5*i,
+                   positions=x - 0.5 * i,
                    whis=[2.5, 97.5],
                    showfliers=False,
                    widths=0.4,
                    labels=None,
                    patch_artist=False)
-        ax.plot(x - 0.5*i, p, '.', color=c[i], label='Session ' + str(i + 1))
+        ax.plot(x - 0.5 * i, p, '.', color=c[i], label='Session ' + str(i + 1))
         ax.set_xticks(x)
         ax.set_xticklabels([
             r'$\boldsymbol{\alpha_{s}}$', r'$\boldsymbol{\alpha_{f}}$',

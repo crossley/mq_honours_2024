@@ -72,7 +72,7 @@ dir_data = "../data/"
 
 d_rec = []
 
-for s in range(13, 37):
+for s in range(13, 39):
 
     f_trl = "sub_{}_data.csv".format(s)
     f_mv = "sub_{}_data_move.csv".format(s)
@@ -130,46 +130,177 @@ d.sort_values(["condition", "subject", "trial", "t"], inplace=True)
 # 13, 15, 17, 25, 31, 35
 
 # low high
-# 19, 21, 23, 27, 29, 33, 37
+# 19, 21, 23, 27, 29, 33, 37, 39
 
 d.loc[(d["condition"] == "blocked")
       & np.isin(d["subject"], [13, 15, 17, 25, 31, 35]),
       "condition"] = "Blocked - High low"
 d.loc[(d["condition"] == "blocked")
-      & np.isin(d["subject"], [19, 21, 23, 27, 29, 33, 37]),
+      & np.isin(d["subject"], [19, 21, 23, 27, 29, 33, 37, 39]),
       "condition"] = "Blocked - Low High"
 
 d.groupby(["condition"])["subject"].unique()
 
-# NOTE: because of bug in experiment
+# NOTE: because of bug in experiment (15 deg rotation
+# applied twice)
 d["rotation"] = d["rotation"] * 2
 
 d.groupby(["condition", "subject"])["trial"].nunique()
+
+# NOTE: create by trial frame
+dp = d[["condition", "subject", "trial", "phase", "su", "emv",
+        "rotation"]].drop_duplicates()
+
+
+def identify_outliers(x):
+    x["outlier"] = False
+    # nsd = 2.5
+    # x.loc[(np.abs(x["emv"]) - x["emv"].mean()) > nsd * np.std(x["emv"]), "outlier"] = True
+    x.loc[np.abs(x["emv"]) > 70, "outlier"] = True
+    return x
+
+
+dp = dp.groupby(["condition",
+                 "subject"]).apply(identify_outliers).reset_index(drop=True)
+
+dp.groupby(["condition", "subject"])["outlier"].sum()
+
+dp = dp[dp["outlier"] == False]
+
+dp = dp.sort_values(["condition", "subject", "trial"])
 
 
 def add_prev(x):
     x["su_prev"] = x["su"].shift(1)
     x["delta_emv"] = np.diff(x["emv"].to_numpy(), prepend=0)
-    x["movement_error"] = x["rotation"] - x["emv"]
+    x["movement_error"] = -x["rotation"] + x["emv"]
+    x["movement_error_prev"] = x["movement_error"].shift(1)
     return x
 
 
-dp = d[["condition", "subject", "trial", "phase", "su", "emv",
-        "rotation"]].drop_duplicates()
-
-dp = dp.sort_values(["condition", "subject", "trial"])
-
 dp = dp.groupby(["condition", "subject"], group_keys=False).apply(add_prev)
 
-dpp = dp.groupby(["condition", "trial", "phase", "su_prev", "rotation"],
-                 observed=True)[["emv", "delta_emv",
-                                 "movement_error"]].mean().reset_index()
+# NOTE: inspect individual subjects --- measures
+for i, s in enumerate(dp["subject"].unique()):
+
+    ds = dp[dp["subject"] == s].copy()
+
+    fig, ax = plt.subplots(3, 1, squeeze=False, figsize=(5, 12))
+    fig.subplots_adjust(wspace=0.3, hspace=0.5)
+
+    sns.scatterplot(
+        data=ds,
+        x="trial",
+        y="emv",
+        hue="su_prev",
+        markers=True,
+        legend="full",
+        ax=ax[0, 0],
+    )
+    sns.scatterplot(
+        data=ds,
+        x="trial",
+        y="movement_error",
+        hue="su_prev",
+        markers=True,
+        legend=False,
+        ax=ax[1, 0],
+    )
+    sns.scatterplot(
+        data=ds,
+        x="trial",
+        y="delta_emv",
+        hue="su_prev",
+        markers=True,
+        legend=False,
+        ax=ax[2, 0],
+    )
+    [
+        sns.lineplot(
+            data=ds,
+            x="trial",
+            y="rotation",
+            hue="condition",
+            palette=['k'],
+            legend=False,
+            ax=ax_,
+        ) for ax_ in [ax[0, 0], ax[1, 0], ax[2, 0]]
+    ]
+
+    ax[0, 0].legend(loc="upper left", bbox_to_anchor=(0.0, 1.4), ncol=2)
+
+    plt.savefig("../figures/fig_measures_sub_" + str(s) + ".png")
+    plt.close()
+
+# NOTE: inspect individual subjects --- scatter
+for i, s in enumerate(dp["subject"].unique()):
+
+    ds = dp[dp["subject"] == s].copy()
+
+    fig, ax = plt.subplots(1, 3, squeeze=False, figsize=(12, 4))
+    fig.subplots_adjust(wspace=0.3, hspace=0.5)
+
+    sns.scatterplot(
+        data=ds,
+        x="trial",
+        y="emv",
+        hue="su_prev",
+        markers=True,
+        legend="full",
+        ax=ax[0, 0],
+    )
+    sns.lineplot(data=ds,
+                 x="trial",
+                 y="rotation",
+                 hue="condition",
+                 palette=['k'],
+                 legend=False,
+                 ax=ax[0, 0])
+
+    for j, ph in enumerate([2, 5]):
+        ds = ds[~ds["su_prev"].isna()]
+        su_levels = np.sort(ds["su_prev"].unique())
+        dss = ds[ds["phase"] == ph].copy()
+        for k, su in enumerate(dss["su_prev"].unique()):
+            dsss = dss[dss["su_prev"] == su].copy()
+            sns.scatterplot(
+                data=dsss,
+                x="movement_error_prev",
+                y="delta_emv",
+                hue="su_prev",
+                legend="full",
+                ax=ax[0, j + 1],
+            )
+            sns.regplot(
+                data=dsss,
+                x="movement_error_prev",
+                y="delta_emv",
+                scatter=False,
+                color=sns.color_palette()[np.where(su_levels == su)[0][0]],
+                ax=ax[0, j + 1],
+            )
+
+    ax[0, 0].legend(loc="upper left", bbox_to_anchor=(0.0, 1.4), ncol=2)
+    ax[0, 1].legend(loc="upper left", bbox_to_anchor=(0.0, 1.4), ncol=2)
+    ax[0, 2].legend(loc="upper left", bbox_to_anchor=(0.0, 1.4), ncol=2)
+
+    plt.savefig("../figures/fig_scatter_sub_" + str(s) + ".png")
+    plt.close()
+
+# NOTE: Exclude ppts that have abberant movements
+subs_exc = [2, 5, 20]
+dp = dp[~np.isin(dp["subject"], subs_exc)]
+
+# NOTE: average over subjects
+dpp = dp.groupby(["condition", "trial", "phase", "su_prev"], observed=True)[[
+    "emv", "delta_emv", "movement_error", "movement_error_prev", "rotation"
+]].mean().reset_index()
 
 dp.to_csv("../data_summary/summary_per_trial_per_subject.csv")
 dpp.to_csv("../data_summary/summary_per_trial.csv")
 
-fig, ax = plt.subplots(2, 2, squeeze=False)
-# emv
+fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(12, 4))
+fig.subplots_adjust(wspace=0.3, hspace=0.5)
 sns.scatterplot(
     data=dpp[dpp["condition"] != "interleaved"],
     x="trial",
@@ -184,6 +315,7 @@ sns.scatterplot(
     data=dpp[dpp["condition"] == "interleaved"],
     x="trial",
     y="emv",
+    style="condition",
     hue="su_prev",
     markers=True,
     legend="full",
@@ -203,64 +335,10 @@ sns.scatterplot(
         ax=ax_,
     ) for ax_ in [ax[0, 0], ax[0, 1]]
 ]
-# add scatter plot of delta emv vs movement error colour
-# coded by su_prev with reg lines
-sns.scatterplot(data=dpp[(dpp["condition"] != "interleaved")
-                         & (dpp["phase"] == 2)],
-                y="delta_emv",
-                x="movement_error",
-                hue="su_prev",
-                style="condition",
-                legend=False,
-                ax=ax[1, 0])
-sns.scatterplot(data=dpp[(dpp["condition"] == "interleaved")
-                         & (dpp["phase"] == 2)],
-                y="delta_emv",
-                x="movement_error",
-                hue="su_prev",
-                legend=False,
-                ax=ax[1, 1])
-sns.regplot(data=dpp[(dpp["condition"] != "interleaved")
-                     & (dpp["su_prev"] == dpp["su_prev"].unique()[0]) &
-                     (dpp["phase"] == 2)],
-            x="delta_emv",
-            y="movement_error",
-            scatter=False,
-            robust=True,
-            ax=ax[1, 0])
-sns.regplot(data=dpp[(dpp["condition"] != "interleaved")
-                     & (dpp["su_prev"] == dpp["su_prev"].unique()[1]) &
-                     (dpp["phase"] == 2)],
-            y="delta_emv",
-            x="movement_error",
-            scatter=False,
-            robust=True,
-            ax=ax[1, 0])
-sns.regplot(data=dpp[(dpp["condition"] == "interleaved")
-                     & (dpp["su_prev"] == dpp["su_prev"].unique()[0]) &
-                     (dpp["phase"] == 2)],
-            x="delta_emv",
-            y="movement_error",
-            scatter=False,
-            robust=True,
-            ax=ax[1, 1])
-sns.regplot(data=dpp[(dpp["condition"] == "interleaved")
-                     & (dpp["su_prev"] == dpp["su_prev"].unique()[1]) &
-                     (dpp["phase"] == 2)],
-            y="delta_emv",
-            x="movement_error",
-            scatter=False,
-            robust=True,
-            ax=ax[2, 1])
-ax[2, 0].set_xlim(-50, 50)
-ax[2, 0].set_ylim(-50, 50)
-ax[2, 1].set_xlim(-50, 50)
-ax[2, 1].set_ylim(-50, 50)
-[x.set_xlabel("Delta Endppoint Movement Vector") for x in [ax[1, 0], ax[1, 1]]]
-[x.set_ylabel("Movement Error") for x in [ax[1, 0], ax[1, 1]]]
-ax[0, 0].legend(loc="upper left", bbox_to_anchor=(0.0, 1.2), ncol=2)
-ax[0, 1].legend(loc="upper left", bbox_to_anchor=(0.0, 1.2), ncol=2)
-plt.show()
+ax[0, 0].legend(loc="upper left", bbox_to_anchor=(0.0, 1.0), ncol=2)
+ax[0, 1].legend(loc="upper left", bbox_to_anchor=(0.0, 1.0), ncol=2)
+plt.savefig("../figures/summary_per_trial.png")
+plt.close()
 
 # NOTE: statsmodels
 import pingouin as pg
@@ -270,52 +348,71 @@ import patsy
 from patsy.contrasts import Diff, Treatment
 
 mod_formula = "emv ~ "
-mod_formula += "C(su_prev, Diff) * movement_error + "
+mod_formula += "C(su_prev, Diff) * movement_error_prev + "
 mod_formula += "np.log(trial) + "
 mod_formula += "1"
 
+ph = 5
+
 # NOTE: blocked
-dppp = dpp[(dpp["condition"] != "interleaved") & (dpp["phase"] == 2)].copy()
+dppp = dpp[(dpp["condition"] != "interleaved") & (dpp["phase"] == ph)].copy()
 
 mod = smf.ols(mod_formula, data=dppp)
 res_sm = mod.fit()
+print(res_sm.summary())
 
 dppp["emv_pred"] = res_sm.model.predict(res_sm.params, res_sm.model.exog)
-
-fig, ax = plt.subplots(2, 1, squeeze=False)
-sns.scatterplot(data=dppp,
-                x="trial",
-                y="emv",
-                hue="su_prev",
-                style="condition",
-                ax=ax[0, 0])
-sns.scatterplot(data=dppp,
-                x="trial",
-                y="emv_pred",
-                hue="su_prev",
-                style="condition",
-                ax=ax[1, 0])
-plt.show()
 
 # NOTE: interleaved
-dppp = dpp[(dpp["condition"] == "interleaved") & (dpp["phase"] == 2)].copy()
+dppp = dpp[(dpp["condition"] == "interleaved") & (dpp["phase"] == ph)].copy()
 
 mod = smf.ols(mod_formula, data=dppp)
 res_sm = mod.fit()
+print(res_sm.summary())
 
 dppp["emv_pred"] = res_sm.model.predict(res_sm.params, res_sm.model.exog)
 
-fig, ax = plt.subplots(2, 1, squeeze=False)
-sns.scatterplot(data=dppp,
-                x="trial",
-                y="emv",
-                hue="su_prev",
-                style="condition",
-                ax=ax[0, 0])
-sns.scatterplot(data=dppp,
-                x="trial",
-                y="emv_pred",
-                hue="su_prev",
-                style="condition",
-                ax=ax[1, 0])
-plt.show()
+# NOTE: 3-way anova approach
+d = dp.copy()
+
+d["phase_2"] = "None"
+d.loc[np.isin(d["trial"], [31, 32, 33]), "phase_2"] = "rot_1"
+d.loc[np.isin(d["trial"], [231, 232, 233]), "phase_2"] = "rot_2"
+# d.loc[np.isin(d["trial"], [128, 129, 130]), "phase_2"] = "rot_1"
+# d.loc[np.isin(d["trial"], [328, 329, 330]), "phase_2"] = "rot_2"
+
+d.loc[d["condition"].str.contains("Blocked"), "condition"] = "blocked"
+
+d = d[["condition", "subject", "phase_2", "su_prev", "emv"]].copy()
+d = d[d["phase_2"] != "None"]
+
+dd = d.groupby(["condition", "subject", "phase_2", "su_prev"],
+               observed=True)["emv"].mean().reset_index()
+
+dd["su_prev"] = dd["su_prev"].astype("category")
+dd["condition"] = dd["condition"].astype("category")
+dd["phase_2"] = dd["phase_2"].astype("category")
+
+dd.to_csv("../data_summary/d_for_anova.csv")
+
+fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(12, 4))
+fig.subplots_adjust(wspace=0.3, hspace=0.3)
+sns.pointplot(data=dd[dd["condition"] == "blocked"],
+              x="phase_2",
+              y="emv",
+              hue="su_prev",
+              errorbar="se",
+              legend="full",
+              ax=ax[0, 0])
+sns.pointplot(data=dd[dd["condition"] == "interleaved"],
+              x="phase_2",
+              y="emv",
+              hue="su_prev",
+              errorbar="se",
+              legend="full",
+              ax=ax[0, 1])
+ax[0, 0].set_title("blocked")
+ax[0, 1].set_title("interleaved")
+sns.move_legend(ax[0, 0], loc="upper left", bbox_to_anchor=(0.0, 1.0))
+sns.move_legend(ax[0, 1], loc="upper left", bbox_to_anchor=(0.0, 1.0))
+plt.savefig("../figures/summary_anova.png")

@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter
 import seaborn as sns
+from util_func import *
 
 dir_data = "../data"
 
@@ -51,11 +52,12 @@ d = pd.concat(d_rec, ignore_index=True)
 # NOTE: Fix bug in code for first 18 ppts
 d.loc[(d["condition"] == "new_learn") & (d["subject"] <= 18), "experiment"] = 2
 
+d.groupby(["experiment", "condition"])["subject"].unique()
+d.groupby(["experiment", "condition"])["subject"].nunique()
+
 # calculate accuracy for each block
 dd = d.groupby(["experiment", "condition", "subject", "block",
                 "phase"])["acc"].mean().reset_index()
-
-# 
 
 fig, ax = plt.subplots(1, 1, squeeze=False, figsize=(6, 6))
 sns.lineplot(data=dd[(dd["experiment"] == 1)],
@@ -108,3 +110,9 @@ ax[0, 1].set_ylim(0, 1)
 ax[0, 0].set_title("Phase: Learn")
 ax[0, 1].set_title("Phase: Test")
 plt.show()
+
+# NOTE: p;lot stim space
+d = pd.concat(d_rec, ignore_index=True)
+dd = d[["xt", "yt"]].iloc[:900]
+
+ #plot_stim_space_examples(dd)
