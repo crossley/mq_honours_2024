@@ -9,18 +9,17 @@ np.random.shuffle(conditions)
 for i in range(len(conditions)):
 
     # Specify possible target angles
-    target_angle = np.array([45, 60, 75, 90, 105, 120, 135])
-    target_train = target_angle[4]
+    target_angle = np.array([80, 85, 90, 95, 100])
+    target_train = target_angle[target_angle == 90][0]
     n_targets = target_angle.shape[0]
 
-#     r = 1
-#     x = r * np.cos(np.deg2rad(target_angle))
-#     y = r * np.sin(np.deg2rad(target_angle))
-# 
-#     plt.scatter(x, y)
-#     plt.scatter([0], [0], c='r')
-#     plt.show()
-
+    #     r = 1
+    #     x = r * np.cos(np.deg2rad(target_angle))
+    #     y = r * np.sin(np.deg2rad(target_angle))
+    #
+    #     plt.scatter(x, y)
+    #     plt.scatter([0], [0], c='r')
+    #     plt.show()
 
     # Specify the number of times you want to cycle through the targets. Note
     # that each phase can have a different set of targets to cycle between (see
@@ -41,7 +40,8 @@ for i in range(len(conditions)):
     targets_baseline_endpoint_fb = target_angle
     targets_baseline_mixed_fb = target_angle
     targets_generalisation = np.concatenate(
-        (np.tile(target_angle[4], n_gen_tops), target_angle[0:4], target_angle[5:]))
+        (np.tile(target_angle[target_angle == target_train],
+                 n_gen_tops), target_angle[target_angle != target_train]))
     targets_washout_no_fb = target_angle
     targets_washout_fb = target_angle
 
@@ -116,10 +116,9 @@ for i in range(len(conditions)):
         (['baseline_no_fb'] * n_trial_baseline_no_fb,
          ['baseline_continuous_fb'] * n_trial_baseline_continuous_fb,
          ['baseline_endpoint_fb'] * n_trial_baseline_endpoint_fb,
-         ['baseline_mixed_fb'] * n_trial_baseline_mixed_fb, 
-         ['generalisation'] * n_trial_generalisation,
-         ['washout_no_fb'] * n_trial_washout_no_fb,
-         ['washout_fb'] * n_trial_washout_fb))
+         ['baseline_mixed_fb'] * n_trial_baseline_mixed_fb,
+         ['generalisation'] * n_trial_generalisation, ['washout_no_fb'] *
+         n_trial_washout_no_fb, ['washout_fb'] * n_trial_washout_fb))
 
     # Specify the mean and standard deviation of the perturbation to be applied
     # during the clamp phase.
@@ -187,9 +186,8 @@ for i in range(len(conditions)):
     # can later be added to the config dataframe.
     instruct_phase = np.concatenate(
         (instruct_baseline_no_fb, instruct_baseline_continuous_fb,
-         instruct_baseline_endpoint_fb, instruct_baseline_mixed_fb, 
-         instruct_generalisation, instruct_washout_no_fb,
-         instruct_washout_fb))
+         instruct_baseline_endpoint_fb, instruct_baseline_mixed_fb,
+         instruct_generalisation, instruct_washout_no_fb, instruct_washout_fb))
 
     # The experiment code also defines instructions that are displayed for
     # every state. The following is an indicator column that should be used to
@@ -219,7 +217,7 @@ for i in range(len(conditions)):
         (0 * np.ones(n_trial_baseline_no_fb),
          1 * np.ones(n_trial_baseline_continuous_fb),
          1 * np.ones(n_trial_baseline_endpoint_fb),
-         np.random.permutation([0, 1] * (n_trial_baseline_mixed_fb // 2)), 
+         np.random.permutation([0, 1] * (n_trial_baseline_mixed_fb // 2)),
          0 * np.ones(n_trial_generalisation),
          0 * np.ones(n_trial_washout_no_fb), 1 * np.ones(n_trial_washout_fb)))
 
