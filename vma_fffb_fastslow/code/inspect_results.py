@@ -97,7 +97,7 @@ def add_prev(x):
     x["su_prev"] = x["su"].shift(1)
     x["delta_emv"] = np.diff(x["emv"].to_numpy(), prepend=0)
     x["delta_imv"] = np.diff(x["imv"].to_numpy(), prepend=0)
-    x["fb_int"] = x["imv"] - x["emv"]
+    x["fb_int"] = x["emv"] - x["imv"] 
     x["err_mp"] = x["rotation"] - x["imv"]
     x["err_mp_prev"] = x["err_mp"].shift(1)
     x["err_ep"] = x["rotation"] - x["emv"]
@@ -201,7 +201,8 @@ dd = d.groupby(["condition", "subject", "phase", "trial", "su"],
 ddd = (dd.groupby(["condition", "phase", "su",
                    "relsamp"])[["t", "x", "y", "v"]].mean().reset_index())
 
-fig, ax = plt.subplots(4, 2, squeeze=False)
+# NOTE: trajectory by phase
+fig, ax = plt.subplots(4, 2, squeeze=False, figsize=(7, 10))
 fig.subplots_adjust(hspace=0.6, wspace=0.4)
 for i, p in enumerate(ddd.phase.unique()):
     sns.scatterplot(data=ddd[(ddd["phase"] == p)
@@ -222,9 +223,10 @@ for i, x in enumerate(ax.flatten()):
     x.set_xlim(-20, 20)
     x.set_ylim(0, 200)
     x.legend(loc="upper left", bbox_to_anchor=(0.0, 1), ncol=1)
-plt.show()
+plt.savefig("../figures/fig_traj_by_phase.png")
 
-fig, ax = plt.subplots(4, 2, squeeze=False)
+# NOTE: velocity by phase
+fig, ax = plt.subplots(4, 2, squeeze=False, figsize=(7, 10))
 fig.subplots_adjust(hspace=0.6, wspace=0.4)
 for i, p in enumerate(ddd.phase.unique()):
     sns.lineplot(data=ddd[(ddd["phase"] == p)
@@ -242,10 +244,8 @@ for i, p in enumerate(ddd.phase.unique()):
     ax[i, 0].set_title("Condition: Slow " + "Phase: " + str(i + 1))
     ax[i, 1].set_title("Condition: Fast " + "Phase: " + str(i + 1))
 for i, x in enumerate(ax.flatten()):
-    #    x.set_xlim(-20, 20);
-    #    x.set_ylim(0, 200);
     x.legend(loc="upper left", bbox_to_anchor=(0.0, 1), ncol=1)
-plt.show()
+plt.savefig("../figures/fig_vel_by_phase.png")
 
 # NOTE: Begin trial-level analysis
 dp = d[[
@@ -265,37 +265,32 @@ dpp = dp.groupby(["condition", "trial", "phase", "su_prev"],
 
 dpp.to_csv("../data_summary/adapt_by_trial_dpp.csv", index=False)
 
-fig, ax = plt.subplots(2, 2, squeeze=False)
+# NOTE: fig adapt by trial
+fig, ax = plt.subplots(2, 2, squeeze=False, figsize=(12, 8))
 fig.subplots_adjust(hspace=0.4, wspace=0.4)
-sns.scatterplot(
-    data=dpp[dpp["condition"] == "fast"],
-    x="trial",
-    y="imv",
-    hue="su_prev",
-    ax=ax[0, 0],
-)
-sns.scatterplot(
-    data=dpp[dpp["condition"] == "fast"],
-    x="trial",
-    y="emv",
-    hue="su_prev",
-    ax=ax[0, 1],
-)
-sns.scatterplot(
-    data=dpp[dpp["condition"] == "slow"],
-    x="trial",
-    y="imv",
-    hue="su_prev",
-    ax=ax[1, 0],
-)
-sns.scatterplot(
-    data=dpp[dpp["condition"] == "slow"],
-    x="trial",
-    y="emv",
-    hue="su_prev",
-    ax=ax[1, 1],
-)
-[sns.lineplot(data=dpp, x="trial", y="rotation", ax=x) for x in ax.flatten()]
+[
+    sns.lineplot(data=dpp,
+                 x="trial",
+                 y="rotation",
+                 color=(0.2, 0.2, 0.2),
+                 legend=False,
+                 ax=x) for x in ax.flatten()
+]
+for i, condition in enumerate(["slow", "fast"]):
+    for j, su in enumerate(["low", "mid", "high", "inf"]):
+        dppp = dpp[(dpp["condition"] == condition) & (dpp["su_prev"] == su)]
+        sns.scatterplot(data=dppp,
+                        x="trial",
+                        y="imv",
+                        palette=sns.color_palette("Set1")[j],
+                        label=su,
+                        ax=ax[0, i])
+        sns.scatterplot(data=dppp,
+                        x="trial",
+                        y="emv",
+                        palette=sns.color_palette("Set1")[j],
+                        label=su,
+                        ax=ax[1, i])
 [x.set_ylim(-15, 30) for x in ax.flatten()]
 [x.set_xlabel("Trial") for x in ax.flatten()]
 [x.set_ylabel("Endppoint Movement Vector") for x in [ax[0, 1], ax[1, 1]]]
@@ -309,7 +304,7 @@ sns.scatterplot(
 for x in ax.flatten():
     legend = x.legend_
     legend.set_alpha(1)
-plt.show()
+plt.savefig("../figures/fig_adapt_by_trial.png")
 
 # NOTE: scatter plots within- and between- movement correction
 dpp_su = dp[np.isin(dp["phase"], [1, 2])].groupby(
@@ -325,7 +320,7 @@ dpp_su_prev = dp[np.isin(dp["phase"], [1, 2])].groupby(
 dpp_su.to_csv("../data_summary/scatter_dpp_su.csv", index=False)
 dpp_su_prev.to_csv("../data_summary/scatter_dpp_su_prev.csv", index=False)
 
-fig, ax = plt.subplots(2, 2, squeeze=False)
+fig, ax = plt.subplots(2, 2, squeeze=False, figsize=(12, 8))
 
 sns.scatterplot(
     data=dpp_su_prev[dpp_su_prev["condition"] == "slow"],
@@ -406,4 +401,4 @@ ax[1, 1].set_xlabel("Movement Error")
 ax[1, 1].set_ylabel("Within-Movement Correction")
 
 plt.tight_layout()
-plt.show()
+plt.savefig("../figures/fig_scatter_within_between.png")
