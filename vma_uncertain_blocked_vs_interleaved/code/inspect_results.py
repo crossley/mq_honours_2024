@@ -5,6 +5,11 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy import signal
 from scipy.interpolate import CubicSpline
+import pingouin as pg
+import statsmodels.formula.api as smf
+import statsmodels.api as sm
+import patsy
+from patsy.contrasts import Diff, Treatment
 
 
 def interpolate_movements(d):
@@ -340,28 +345,142 @@ ax[0, 1].legend(loc="upper left", bbox_to_anchor=(0.0, 1.0), ncol=2)
 plt.savefig("../figures/summary_per_trial.png")
 plt.close()
 
-# NOTE: statsmodels
-import pingouin as pg
-import statsmodels.formula.api as smf
-import statsmodels.api as sm
-import patsy
-from patsy.contrasts import Diff, Treatment
+# NOTE: visually identify rule users
+subs_rb = [19, 23, 25, 29, 33]
+dp["rb"] = False
+dp.loc[np.isin(dp["subject"], subs_rb), "rb"] = True
 
+dpp = dp.groupby(["condition", "trial", "phase", "su_prev", "rb"],
+                 observed=True)[[
+                     "emv", "delta_emv", "movement_error",
+                     "movement_error_prev", "rotation"
+                 ]].mean().reset_index()
+
+dppp = dpp[dpp["condition"] != "interleaved"].copy()
+
+fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(12, 4))
+fig.subplots_adjust(wspace=0.3, hspace=0.5)
+sns.scatterplot(
+    data=dppp[dppp["rb"] == False],
+    x="trial",
+    y="emv",
+    style="condition",
+    hue="su_prev",
+    markers=True,
+    legend="full",
+    ax=ax[0, 0],
+)
+sns.scatterplot(
+    data=dppp[dppp["rb"] == True],
+    x="trial",
+    y="emv",
+    style="condition",
+    hue="su_prev",
+    markers=True,
+    legend="full",
+    ax=ax[0, 1],
+)
+[x.set_ylim(-10, 50) for x in [ax[0, 0], ax[0, 1]]]
+[x.set_xlabel("Trial") for x in [ax[0, 0], ax[0, 1]]]
+[x.set_ylabel("Endppoint Movement Vector") for x in [ax[0, 0], ax[0, 1]]]
+[
+    sns.lineplot(
+        data=dppp[dppp["condition"] != "interleaved"],
+        x="trial",
+        y="rotation",
+        hue="condition",
+        palette=['k'],
+        legend=False,
+        ax=ax_,
+    ) for ax_ in [ax[0, 0], ax[0, 1]]
+]
+ax[0, 0].set_title("Rule non-users")
+ax[0, 1].set_title("Rule users")
+ax[0, 0].legend(loc="upper left", bbox_to_anchor=(0.0, 1.0), ncol=2)
+ax[0, 1].legend(loc="upper left", bbox_to_anchor=(0.0, 1.0), ncol=2)
+plt.savefig("../figures/summary_per_trial_rb.png")
+plt.close()
+
+# NOTE: scatter slope analysis
+# adapt 1 is trials 30:130
+dppp1 = dp[(dp["condition"] != "interleaved") & (dp["phase"] == ph) &
+          (dp["rb"] == False) & (dp["trial"] < 50)].copy()
+dppp2 = dp[(dp["condition"] != "interleaved") & (dp["phase"] == ph) &
+           (dp["rb"] == True) & (dp["trial"] < 50)].copy()
+dppp3 = dp[(dp["condition"] == "interleaved") & (dp["phase"] == ph) &
+           (dp["rb"] == False) & (dp["trial"] < 50)].copy()
+fig, ax = plt.subplots(1, 3, squeeze=False, figsize=(12, 4))
+fig.subplots_adjust(wspace=0.3, hspace=0.5)
+sns.scatterplot(
+    data=dppp1,
+    x="movement_error_prev",
+    y="delta_emv",
+    hue="su_prev",
+    markers=True,
+    legend="full",
+    ax=ax[0, 0],
+)
+sns.scatterplot(
+    data=dppp2,
+    x="movement_error_prev",
+    y="delta_emv",
+    hue="su_prev",
+    markers=True,
+    legend="full",
+    ax=ax[0, 1],
+)
+sns.scatterplot(
+    data=dppp3,
+    x="movement_error_prev",
+    y="delta_emv",
+    hue="su_prev",
+    markers=True,
+    legend="full",
+    ax=ax[0, 2],
+)
+ax[0, 0].set_title("Blocked - non-rule users")
+ax[0, 1].set_title("Blocked - rule users")
+ax[0, 2].set_title("Interleaved")
+[x.set_xlabel("Movement error previous trial") for x in ax.flatten()]
+[x.set_ylabel("Change in EMV") for x in ax.flatten()]
+plt.savefig("../figures/summary_scatter_slope.png")
+plt.close()
+
+# NOTE: statsmodels
 mod_formula = "emv ~ "
 mod_formula += "C(su_prev, Diff) * movement_error_prev + "
 mod_formula += "np.log(trial) + "
 mod_formula += "1"
 
-ph = 5
+ph = 2
 
 # NOTE: blocked
-dppp = dpp[(dpp["condition"] != "interleaved") & (dpp["phase"] == ph)].copy()
+# dppp = dpp[(dpp["condition"] != "interleaved") & (dpp["phase"] == ph)].copy()
+dppp = dpp[(dpp["condition"] != "interleaved") & (dpp["phase"] == ph) &
+           (dpp["rb"] == False) & (dpp["trial"] < 60)].copy()
 
 mod = smf.ols(mod_formula, data=dppp)
 res_sm = mod.fit()
 print(res_sm.summary())
 
 dppp["emv_pred"] = res_sm.model.predict(res_sm.params, res_sm.model.exog)
+
+# plot obs and pred overliad
+fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(6, 6))
+fig.subplots_adjust(wspace=0.3, hspace=0.5)
+sns.scatterplot(data=dppp,
+                x="trial",
+                y="emv",
+                hue="su_prev",
+                markers=True,
+                ax=ax[0, 0])
+sns.scatterplot(data=dppp,
+                x="trial",
+                y="emv_pred",
+                hue="su_prev",
+                markers=True,
+                ax=ax[0, 1])
+plt.show()
 
 # NOTE: interleaved
 dppp = dpp[(dpp["condition"] == "interleaved") & (dpp["phase"] == ph)].copy()
@@ -383,7 +502,8 @@ d.loc[np.isin(d["trial"], [231, 232, 233]), "phase_2"] = "rot_2"
 
 d.loc[d["condition"].str.contains("Blocked"), "condition"] = "blocked"
 
-d = d[["condition", "subject", "phase_2", "su_prev", "emv", "delta_emv"]].copy()
+d = d[["condition", "subject", "phase_2", "su_prev", "emv",
+       "delta_emv"]].copy()
 d = d[d["phase_2"] != "None"]
 
 dd = d.groupby(["condition", "subject", "phase_2", "su_prev"],
