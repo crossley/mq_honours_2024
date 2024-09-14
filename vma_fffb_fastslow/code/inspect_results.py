@@ -97,7 +97,7 @@ def add_prev(x):
     x["su_prev"] = x["su"].shift(1)
     x["delta_emv"] = np.diff(x["emv"].to_numpy(), prepend=0)
     x["delta_imv"] = np.diff(x["imv"].to_numpy(), prepend=0)
-    x["fb_int"] = x["emv"] - x["imv"] 
+    x["fb_int"] = x["emv"] - x["imv"]
     x["err_mp"] = x["rotation"] - x["imv"]
     x["err_mp_prev"] = x["err_mp"].shift(1)
     x["err_ep"] = x["rotation"] - x["emv"]
@@ -111,7 +111,9 @@ d_rec = []
 
 plot_sub_trajectories = False
 
-for s in range(1, 16):
+subs = np.concatenate([np.arange(0, 19), np.arange(20, 34)])
+
+for s in subs:
 
     f_trl = "sub_{}_data.csv".format(s)
     f_mv = "sub_{}_data_move.csv".format(s)
@@ -126,6 +128,9 @@ for s in range(1, 16):
 
         n_trial_trl = d_trl["trial"].nunique()
         n_trial_mv = d_mv["trial"].nunique()
+
+
+        print(s, n_trial_trl, n_trial_mv)
 
     except FileNotFoundError:
         n_trial_trl = 0
