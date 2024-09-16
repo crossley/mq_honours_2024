@@ -129,7 +129,6 @@ for s in subs:
         n_trial_trl = d_trl["trial"].nunique()
         n_trial_mv = d_mv["trial"].nunique()
 
-
         print(s, n_trial_trl, n_trial_mv)
 
     except FileNotFoundError:
@@ -407,3 +406,51 @@ ax[1, 1].set_ylabel("Within-Movement Correction")
 
 plt.tight_layout()
 plt.savefig("../figures/fig_scatter_within_between.png")
+
+for i, s in enumerate(dpp_su_prev.subject.unique()):
+
+    dpp_su_prev_s = dpp_su_prev[dpp_su_prev["subject"] == s]
+    dpp_su_s = dpp_su[dpp_su["subject"] == s]
+
+    fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(12, 5))
+
+    sns.scatterplot(
+        data=dpp_su_prev_s,
+        x="err_mp_prev",
+        y="delta_imv",
+        hue="su_prev",
+        ax=ax[0, 0],
+    )
+    [
+        sns.regplot(data=dpp_su_prev[(dpp_su_prev["su_prev"] == x)],
+                    x="err_mp_prev",
+                    y="delta_imv",
+                    scatter=False,
+                    ax=ax[0, 0]) for x in dpp_su_prev["su_prev"].unique()
+    ]
+
+    sns.scatterplot(
+        data=dpp_su_s,
+        x="err_mp",
+        y="fb_int",
+        hue="su",
+        ax=ax[0, 1],
+    )
+    [
+        sns.regplot(data=dpp_su_s[(dpp_su_s["su"] == x)],
+                    x="err_mp",
+                    y="fb_int",
+                    scatter=False,
+                    ax=ax[0, 1]) for x in dpp_su["su"].unique()
+    ]
+
+    ax[0, 0].set_title(dpp_su_prev_s.condition.unique())
+    ax[0, 1].set_title(dpp_su_prev_s.condition.unique())
+
+    ax[0, 0].set_xlabel("Movement Error")
+    ax[0, 0].set_ylabel("Delta Initial Movement Vector")
+    ax[0, 1].set_xlabel("Movement Error")
+    ax[0, 1].set_ylabel("Within-Movement Correction")
+
+    plt.tight_layout()
+    plt.savefig("../figures/fig_scatter_within_between_" + str(s) + ".png")
