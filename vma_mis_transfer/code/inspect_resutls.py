@@ -196,6 +196,10 @@ def fit_gaussian(x):
     return x
 
 
+dp = d.groupby(["subject", "session", "phase", "trial", "target_angle"],
+               observed=True)["emv_rel"].mean().reset_index()
+dp.to_csv("../data_summary/data_by_trial.csv", index=False)
+
 dpg = d[d["phase"] == "generalization"].groupby(
     ["subject", "session", "trial", "target_angle"],
     observed=True)["emv_rel"].mean().reset_index()
