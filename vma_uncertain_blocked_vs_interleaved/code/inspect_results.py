@@ -77,7 +77,7 @@ dir_data = "../data/"
 
 d_rec = []
 
-for s in range(13, 39):
+for s in range(13, 40):
 
     f_trl = "sub_{}_data.csv".format(s)
     f_mv = "sub_{}_data_move.csv".format(s)
