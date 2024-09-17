@@ -213,6 +213,8 @@ sns.barplot(data=d_fit, x="session", y="popt_c", errorbar="se", ax=ax[0, 2])
 plt.savefig("../figures/gauss_fits.png")
 plt.close()
 
+d_fit.to_csv("../data_summary/gauss_fits.csv", index=False)
+
 fig, ax = plt.subplots(2, 2, squeeze=False, figsize=(12, 8))
 ax = ax.flatten()
 for i, s in enumerate(dpg.session.unique()):
