@@ -9,235 +9,26 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import seaborn as sns
 import pingouin as pg
 from util_func_dbm import *
+import statsmodels.api as sm
+import patsy
+from statsmodels.nonparametric.smoothers_lowess import lowess
+from util_func_analysis import *
 
 if __name__ == "__main__":
 
-    dir_data = "../data"
-
-    d_rec = []
-
-    for f in os.listdir(dir_data):
-        if f.endswith(".csv"):
-            d = pd.read_csv(os.path.join(dir_data, f))
-            d_rec.append(d)
-
-    d = pd.concat(d_rec)
-
-    print(d.groupby(["condition"])["subject"].unique())
-    print(d.groupby(["condition"])["subject"].nunique())
-
-    d["acc"] = d["cat"] == d["resp"]
-
-    d.loc[d["cat"] == 107, "cat"] = 0
-    d.loc[d["cat"] == 115, "cat"] = 1
-    d.loc[d["cat"] == 97, "cat"] = 0
-    d.loc[d["cat"] == 108, "cat"] = 1
-    d.loc[d["resp"] == 107, "resp"] = 0
-    d.loc[d["resp"] == 115, "resp"] = 1
-    d.loc[d["resp"] == 97, "resp"] = 0
-    d.loc[d["resp"] == 108, "resp"] = 1
-
-    block_size = 100
-    d["block"] = d.groupby(["condition", "subject"]).cumcount() // block_size
-
-    d = d.sort_values(["condition", "subject", "block", "trial"])
-
-    # TODO: test with one or two subjects
-    # d = d.loc[d["subject"].isin([24, 52])]
-
-    # NOTE: only look at final block
-    d = d.loc[d["block"] == 3]
-
-    models = [
-        nll_unix,
-        nll_unix,
-        nll_uniy,
-        nll_uniy,
-        nll_glc,
-        nll_glc,
-        #    nll_gcc_eq,
-        #    nll_gcc_eq,
-        #    nll_gcc_eq,
-        #    nll_gcc_eq,
-    ]
-    side = [0, 1, 0, 1, 0, 1, 0, 1, 2, 3]
-    k = [2, 2, 2, 2, 3, 3, 3, 3, 3, 3]
-    n = block_size
-    model_names = [
-        "nll_unix_0",
-        "nll_unix_1",
-        "nll_uniy_0",
-        "nll_uniy_1",
-        "nll_glc_0",
-        "nll_glc_1",
-        #    "nll_gcc_eq_0",
-        #    "nll_gcc_eq_1",
-        #    "nll_gcc_eq_2",
-        #    "nll_gcc_eq_3",
-    ]
-
-    def assign_best_model(x):
-        model = x["model"].to_numpy()
-        bic = x["bic"].to_numpy()
-        best_model = np.unique(model[bic == bic.min()])[0]
-        x["best_model"] = best_model
-        return x
+    d = load_data()
 
     if not os.path.exists("../dbm_fits/dbm_results.csv"):
-        dbm = (d.groupby(["condition", "subject", "sub_task",
-                          "block"]).apply(fit_dbm, models, side, k, n,
-                                          model_names).reset_index())
-
-        dbm.to_csv("../dbm_fits/dbm_results.csv")
-
+        fit_dbm_models()
     else:
         dbm = pd.read_csv("../dbm_fits/dbm_results.csv")
 
-    dbm = dbm.groupby(["condition", "subject", "sub_task",
-                       "block"]).apply(assign_best_model)
+    dd, ddd = get_best_model_class(dbm)
 
-    dd = dbm.loc[dbm["model"] == dbm["best_model"]]
+    make_fig_dbm(d, dd, ddd)
 
-    ddd = dd[["condition", "subject", "sub_task", "block",
-              "best_model"]].drop_duplicates()
-    ddd["best_model_class"] = ddd["best_model"].str.split("_").str[1]
-    ddd.loc[ddd["best_model_class"] != "glc",
-            "best_model_class"] = "rule-based"
-    ddd.loc[ddd["best_model_class"] == "glc",
-            "best_model_class"] = "procedural"
-    ddd["best_model_class"] = ddd["best_model_class"].astype("category")
-    ddd["sub_task"] = ddd["sub_task"].astype("category")
-    ddd = ddd.reset_index(drop=True)
+    make_fig_accuracy_per_block_by_model(d, dd, ddd)
 
-    def get_best_model_class_2(x):
-        if np.isin("rule-based", x["best_model_class"].to_numpy()):
-            x["best_model_class_2"] = "rule-based"
-        else:
-            x["best_model_class_2"] = "procedural"
+    report_stats_learning_curve(d, dd, ddd)
 
-        return x
-
-    ddd = ddd.groupby(["condition", "subject"
-                       ]).apply(get_best_model_class_2).reset_index(drop=True)
-    ddd["best_model_class_2"] = ddd["best_model_class_2"].astype("category")
-
-    dcat = d[["condition", "sub_task", "x", "y", "cat"]].drop_duplicates()
-    dcat["effector"] = "None"
-    dcat.loc[(dcat["condition"] == "4F4K_congruent") & (dcat["sub_task"] == 1)
-             & (dcat["cat"] == 0), "effector"] = "L1"
-    dcat.loc[(dcat["condition"] == "4F4K_congruent") & (dcat["sub_task"] == 1)
-             & (dcat["cat"] == 1), "effector"] = "R1"
-    dcat.loc[(dcat["condition"] == "4F4K_congruent") & (dcat["sub_task"] == 2)
-             & (dcat["cat"] == 0), "effector"] = "R2"
-    dcat.loc[(dcat["condition"] == "4F4K_congruent") & (dcat["sub_task"] == 2)
-             & (dcat["cat"] == 1), "effector"] = "L2"
-    dcat.loc[(dcat["condition"] == "4F4K_incongruent") &
-             (dcat["sub_task"] == 1) & (dcat["cat"] == 0), "effector"] = "L1"
-    dcat.loc[(dcat["condition"] == "4F4K_incongruent") &
-             (dcat["sub_task"] == 1) & (dcat["cat"] == 1), "effector"] = "R1"
-    dcat.loc[(dcat["condition"] == "4F4K_incongruent") &
-             (dcat["sub_task"] == 2) & (dcat["cat"] == 0), "effector"] = "R2"
-    dcat.loc[(dcat["condition"] == "4F4K_incongruent") &
-             (dcat["sub_task"] == 2) & (dcat["cat"] == 1), "effector"] = "L2"
-    dcat["effector"] = dcat["effector"].astype("category")
-    dcat["effector"] = dcat["effector"].cat.reorder_categories(
-        ["L1", "R1", "L2", "R2"])
-
-    fig, ax = plt.subplots(2, 3, squeeze=False, figsize=(12, 8))
-    # plot categories
-    sns.scatterplot(data=dcat[(dcat["condition"] == "4F4K_congruent")
-                              & (dcat["sub_task"] == 1)],
-                    x="x",
-                    y="y",
-                    hue="effector",
-                    legend=True,
-                    ax=ax[0, 0])
-    sns.scatterplot(data=dcat[(dcat["condition"] == "4F4K_congruent")
-                              & (dcat["sub_task"] == 2)],
-                    x="x",
-                    y="y",
-                    hue="effector",
-                    legend=True,
-                    ax=ax[0, 1])
-    sns.scatterplot(data=dcat[(dcat["condition"] == "4F4K_incongruent")
-                              & (dcat["sub_task"] == 1)],
-                    x="x",
-                    y="y",
-                    hue="effector",
-                    legend=True,
-                    ax=ax[1, 0])
-    sns.scatterplot(data=dcat[(dcat["condition"] == "4F4K_incongruent")
-                              & (dcat["sub_task"] == 2)],
-                    x="x",
-                    y="y",
-                    hue="effector",
-                    legend=True,
-                    ax=ax[1, 1])
-
-    # plot counts
-    sns.countplot(data=ddd[ddd["condition"] == "4F4K_congruent"],
-                  x='best_model_class_2',
-                  stat="proportion",
-                  ax=ax[0, 2])
-    sns.countplot(data=ddd[ddd["condition"] == "4F4K_incongruent"],
-                  x='best_model_class_2',
-                  stat="proportion",
-                  ax=ax[1, 2])
-    ax[0, 2].set - title("4F4K_congruent")
-    ax[1, 2].set - title("4F4K_incongruent")
-
-    # plot bounds
-    for c in dd["condition"].unique():
-        dc = dd[dd["condition"] == c]
-        for s in dc["subject"].unique():
-            ds = dc[dc["subject"] == s]
-            for st in ds["sub_task"].unique():
-
-                plot_title = f"Condition: {c} - Sub-Task: {st}"
-
-                if c == "4F4K_congruent":
-                    if st == 1:
-                        ax_ = ax[0, 0]
-                    else:
-                        ax_ = ax[0, 1]
-                else:
-                    if st == 1:
-                        ax_ = ax[1, 0]
-                    else:
-                        ax_ = ax[1, 1]
-
-                x = dd.loc[(dd["condition"] == c) & (dd["subject"] == s) &
-                           (dd["sub_task"] == st) & (dd["block"] == 3)]
-
-                best_model = x["best_model"].to_numpy()[0]
-
-                if best_model in ("nll_unix_0", "nll_unix_1"):
-                    xc = x["p"].to_numpy()[0]
-                    ax_.plot([xc, xc], [0, 100], "--k")
-
-                elif best_model in ("nll_uniy_0", "nll_uniy_1"):
-                    yc = x["p"].to_numpy()[0]
-                    ax_.plot([0, 100], [yc, yc], "--k")
-
-                elif best_model in ("nll_glc_0", "nll_glc_1"):
-                    # a1 * x + a2 * y + b = 0
-                    # y = -(a1 * x + b) / a2
-                    a1 = x["p"].to_numpy()[0]
-                    a2 = np.sqrt(1 - a1**2)
-                    b = x["p"].to_numpy()[1]
-                    ax_.plot([0, 100], [-b / a2, -(100 * a1 + b) / a2], "-k")
-
-                elif best_model in ("nll_gcc_eq_0", "nll_gcc_eq_1",
-                                    "nll_gcc_eq_2", "nll_gcc_eq_3"):
-                    xc = x["p"].to_numpy()[0]
-                    yc = x["p"].to_numpy()[1]
-                    ax_.plot([xc, xc], [0, 100], "-k")
-                    ax_.plot([0, 100], [yc, yc], "-k")
-
-                ax_.set_xlim(-5, 105)
-                ax_.set_ylim(-5, 105)
-                ax_.set_title(plot_title)
-
-    plt.tight_layout()
-    plt.show()
-    # plt.savefig("../figures/fig_dbm.pdf")
+    make_fig_switch_cost(d, dd, ddd)

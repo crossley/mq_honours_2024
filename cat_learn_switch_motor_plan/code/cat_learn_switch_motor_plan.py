@@ -33,7 +33,7 @@ from imports import *
 from util_func import *
 
 # set subject number
-subject = 2
+subject = 99999
 dir_data = "../data"
 f_name = f"sub_{subject}_data.csv"
 full_path = os.path.join(dir_data, f_name)
