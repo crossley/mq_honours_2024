@@ -60,42 +60,43 @@ d.groupby(["experiment", "condition"])["subject"].nunique()
 dd = d.groupby(["experiment", "condition", "subject", "block",
                 "phase"])["acc"].mean().reset_index()
 
-fig, ax = plt.subplots(1, 3, squeeze=False, figsize=(11, 4))
-
-ddd = dd[dd["experiment"] == 1]
-sns.lineplot(data=ddd,
+fig = plt.figure(figsize=(10, 8))
+gs = fig.add_gridspec(2, 2, height_ratios=[1.5, 1], width_ratios=[1, 1])
+ax1 = fig.add_subplot(gs[0, :])
+ax2 = fig.add_subplot(gs[1, 0])
+ax3 = fig.add_subplot(gs[1, 1])
+sns.lineplot(data=dd,
              x="block",
              y="acc",
              hue="condition",
              style="phase",
              legend="full",
-             ax=ax[0, 0])
-
+             ax=ax1)
 ddd = dd[(dd["experiment"] == 1) & (dd["condition"] == "relearn") &
          (dd["phase"] != "Intervention")].drop_duplicates()
+ddd = ddd[ddd["block"].isin([0, 1, 2, 3, 32, 33, 34, 35])]
 pg.plot_paired(data=ddd,
                dv="acc",
                within="phase",
                subject="subject",
                boxplot=True,
-               ax=ax[0, 1])
-
+               ax=ax2)
 ddd = dd[(dd["experiment"] == 1) & (dd["condition"] == "new_learn") &
          (dd["phase"] != "Intervention")].drop_duplicates()
+ddd = ddd[ddd["block"].isin([0, 1, 2, 3, 32, 33, 34, 35])]
 pg.plot_paired(data=ddd,
                dv="acc",
                within="phase",
                subject="subject",
                boxplot=True,
-               ax=ax[0, 2])
-
-# sns.move_legend(ax[0, 0], "upper left", ncol=1)
-ax[0, 0].set_xlabel("Block")
-ax[0, 0].set_ylabel("Proportion Correct")
-ax[0, 1].set_title("Relearn")
-ax[0, 2].set_title("New Learn")
-ax[0, 1].set_xlabel("Phase")
-ax[0, 2].set_xlabel("Phase")
+               ax=ax3)
+sns.move_legend(ax1, "lower left", bbox_to_anchor=(0, 0), ncol=2)
+ax1.set_xlabel("Block")
+ax1.set_ylabel("Proportion Correct")
+ax2.set_title("Relearn")
+ax3.set_title("New Learn")
+ax2.set_xlabel("Phase")
+ax3.set_xlabel("Phase")
 plt.tight_layout()
 plt.savefig("../figures/fig_results_summary.png")
 
