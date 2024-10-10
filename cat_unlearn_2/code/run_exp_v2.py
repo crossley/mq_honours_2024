@@ -1,9 +1,8 @@
 from imports import *
 from util_func import *
+
 """
-Exp 1: Replicate Exp 1 Crossley et al (2013)
-Exp 2: Replicate Exp 2 Crossley et al (2013)
-Exp 3: Explicit Instructions
+Exp 1: Replicate Exp 1 Crossley et al (2013) but with explicit instructions
 """
 
 # set subject number
@@ -169,7 +168,7 @@ while running:
     if state_current == "state_explicit_instruct":
         time_state += clock_state.tick()
 
-        message_instruct_1 = "Over the last many trials, 75% of all feedback you received was random."
+        message_instruct_1 = "Over the last many trials the feedback you received was random."
         message_instruct_2 = "This was an important part of the experiment."
         message_instruct_3 = "From now on, the feedback will again be valid."
         message_instruct_4 = "Please keep trying to categorize correctly."

@@ -29,9 +29,23 @@ dp = d.copy()
 pp = dp[[
     "condition", "subject", "cycle_phase", "target_angle", "phase", "imv"
 ]].drop_duplicates().reset_index(drop=True)
-pp["target_angle"] = pp["target_angle"].astype("category")
+
+# pp["target_angle"] = pp["target_angle"].astype('category')
 
 ppp = pp[pp["phase"] == "generalisation"]
+
+fig, ax = plt.subplots(1, 1, squeeze=False, figsize=(6, 4))
+sns.lineplot(data=ppp[ppp["condition"] == "low"],
+             x="cycle_phase",
+             y="imv",
+             hue="target_angle",
+             ax=ax[0, 0])
+[
+    ax[0, 0].axhline(y=-ta, color="black", linestyle="--")
+    for ta in ppp["target_angle"].unique()
+]
+ax[0, 0].set_title("Low")
+plt.show()
 
 fig, ax = plt.subplots(1, 2, squeeze=False, figsize=(7, 4))
 sns.lineplot(data=ppp[ppp["condition"] == "low"],

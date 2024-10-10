@@ -3,29 +3,29 @@ from imports import *
 
 def load_all_data():
     d_list = []
-    for sub_num in np.arange(0, 14, 1):
+    #for sub_num in np.arange(0, 14, 1):
+    for sub_num in [10, 14, 17, 21, 22, 23]:
         if sub_num % 2 == 0:
             condition = 1
         else:
             condition = 0
 
         d_move = pd.read_csv("../data/data_movements_" + str(sub_num) + ".csv")
-        d_config = pd.read_csv("../config/config_reach_" + str(sub_num) + ".csv")
+        d_config = pd.read_csv("../config/config_reach_" + str(sub_num) +
+                               ".csv")
         d_trial = pd.read_csv("../data/data_trials_" + str(sub_num) + ".csv")
 
         d_move = d_move[d_move["state"] == "reach"]
 
-        d_config = d_config[
-            [
-                "condition",
-                "subject",
-                "phase",
-                "cycle_phase",
-                "trial",
-                "rot",
-                "target_angle",
-            ]
-        ]
+        d_config = d_config[[
+            "condition",
+            "subject",
+            "phase",
+            "cycle_phase",
+            "trial",
+            "rot",
+            "target_angle",
+        ]]
 
         d_move["trial"] += 1
         d_trial = d_trial[["trial", "endpoint_theta"]]
@@ -33,22 +33,20 @@ def load_all_data():
         d = pd.merge(d, d_trial, on="trial")
         d = d.sort_values(["sample", "time", "trial"])
 
-        d = d[
-            [
-                "sample",
-                "time",
-                "x",
-                "y",
-                "trial",
-                "cycle_phase",
-                "phase",
-                "subject",
-                "condition",
-                "rot",
-                "target_angle",
-                "endpoint_theta",
-            ]
-        ]
+        d = d[[
+            "sample",
+            "time",
+            "x",
+            "y",
+            "trial",
+            "cycle_phase",
+            "phase",
+            "subject",
+            "condition",
+            "rot",
+            "target_angle",
+            "endpoint_theta",
+        ]]
 
         d_list.append(d)
 
@@ -106,7 +104,13 @@ def interpolate_movements(d):
 
     relsamp = np.arange(0, tt.shape[0], 1)
 
-    dd = pd.DataFrame({"relsamp": relsamp, "time": tt, "x": xx, "y": yy, "v": vv})
+    dd = pd.DataFrame({
+        "relsamp": relsamp,
+        "time": tt,
+        "x": xx,
+        "y": yy,
+        "v": vv
+    })
     dd["condition"] = d["condition"].unique()[0]
     dd["subject"] = d["subject"].unique()[0]
     dd["trial"] = d["trial"].unique()[0]
